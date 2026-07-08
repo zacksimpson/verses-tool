@@ -39,7 +39,8 @@ internal class EsvApi(private val apiKey: String) {
                 "&include-footnotes=false" +
                 "&include-verse-numbers=false" +
                 "&include-passage-references=false" +
-                "&include-short-copyright=true",
+                // We attach "(ESV)" to the reference line ourselves instead — see VersesHomeScreen.
+                "&include-short-copyright=false",
         ) {
             header("Authorization", "Token $apiKey")
         }
