@@ -35,7 +35,7 @@ enum class LightTextVariant {
 }
 
 @Composable
-private fun variantStyle(variant: LightTextVariant): TextStyle {
+internal fun variantStyle(variant: LightTextVariant): TextStyle {
     val t = LightThemeTokens.typography
     val base = when (variant) {
         LightTextVariant.Title -> t.title

@@ -1,8 +1,10 @@
 package com.zacksimpson.verses
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -13,10 +15,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.thelightphone.sdk.SealedLightActivity
 import com.thelightphone.sdk.SimpleLightScreen
 import com.thelightphone.sdk.ui.LightBarButton
+import com.thelightphone.sdk.ui.LightIcon
 import com.thelightphone.sdk.ui.LightIcons
 import com.thelightphone.sdk.ui.LightScrollBarPosition
 import com.thelightphone.sdk.ui.LightScrollView
@@ -41,6 +45,9 @@ class VerseForDateScreen(
     override fun Content() {
         val themeColors by LightThemeController.colors.collectAsState()
         var state by remember { mutableStateOf<VerseUiState>(VerseUiState.Loading) }
+        val notesRepo = remember { VerseNotesRepository(lightContext.dataStore) }
+        val notes by notesRepo.notes.collectAsState(initial = emptyList())
+        val hasNote = remember(notes, dateStr) { notes.any { it.date == dateStr } }
 
         LaunchedEffect(dateStr) {
             if (BuildConfig.ESV_API_KEY.isBlank()) {
@@ -96,20 +103,41 @@ class VerseForDateScreen(
                                     scrollBarPosition = LightScrollBarPosition.Inside,
                                 ) {
                                     Column(
-                                        modifier = Modifier.padding(
-                                            horizontal = 1f.gridUnitsAsDp(),
-                                            vertical = 1.5f.gridUnitsAsDp(),
-                                        ),
+                                        modifier = Modifier
+                                            .combinedClickable(
+                                                onClick = {},
+                                                onLongClick = {
+                                                    navigateTo(
+                                                        screenFactory = {
+                                                            VerseActionsScreen(it, dateStr, mode.reference, mode.text)
+                                                        },
+                                                    )
+                                                },
+                                            )
+                                            .padding(
+                                                horizontal = 1f.gridUnitsAsDp(),
+                                                vertical = 1.5f.gridUnitsAsDp(),
+                                            ),
                                     ) {
                                         LightText(
                                             text = mode.text,
                                             variant = LightTextVariant.Heading,
                                             modifier = Modifier.padding(bottom = 0.5f.gridUnitsAsDp()),
                                         )
-                                        LightText(
-                                            text = "${mode.reference} (ESV)",
-                                            variant = LightTextVariant.Copy,
-                                        )
+                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                            LightText(
+                                                text = "${mode.reference} (ESV)",
+                                                variant = LightTextVariant.Copy,
+                                            )
+                                            if (hasNote) {
+                                                LightIcon(
+                                                    icon = LightIcons.PENCIL,
+                                                    size = 1f,
+                                                    modifier = Modifier.padding(start = 0.4f.gridUnitsAsDp()),
+                                                    contentDescription = "Note saved",
+                                                )
+                                            }
+                                        }
                                     }
                                 }
                             }
