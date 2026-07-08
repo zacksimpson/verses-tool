@@ -1,20 +1,23 @@
-# verses-tool
+# Verses
 
-A simple daily Bible verse tool for the Light Phone III,
-built with the official [Light SDK](https://github.com/lightphone/light-sdk).
+A daily Bible verse tool for the Light Phone III, built with the official [Light SDK](https://github.com/lightphone/light-sdk).
 
-This repo is a fork of light-sdk's scaffolding (`sdk/`, `plugin/`, `lint-rules/`, etc.) with
-the placeholder tool replaced by `verses/`, per Light's documented workflow for building
-tools as of their July 2026 SDK preview.
+Shows one verse a day from the ESV translation, refreshed automatically each morning. Look up the verse for any past date, jot a note against any verse, and revisit your notes later.
 
-## What it does
+---
 
-Picks a verse reference from a bundled list (`verses/.../VerseCatalog.kt`), cycling by
-day-of-year, and fetches the passage text live from the official ESV API
-(https://api.esv.org). No push notifications — it refreshes its cache silently
-whenever the tool is opened, if the date has rolled over since the last fetch.
+## Features
 
-## Setup
+* One Bible verse a day (ESV translation), cycling through a bundled reference list by day-of-year
+* Look up the verse for any past date
+* Add free-text notes to any verse, and edit them anytime
+* All your notes in one place, most recent first
+
+---
+
+## Installing on Light Phone III
+
+Not yet published – no APK release exists yet. In the meantime, build from source:
 
 1. Get a free ESV API key at https://api.esv.org (sign up, create an API application).
 2. Add it to this repo's root `local.properties` (gitignored, create the file if it
@@ -31,10 +34,19 @@ whenever the tool is opened, if the date has rolled over since the last fetch.
    ```
 
 Without a key, the tool shows a message asking you to add one instead of making a
-network call.
-
-## Testing
-
-Run on the [LightOS emulator](docs/system_app) for full compatibility (push/permissions),
-or any Android emulator/device for everyday development — see `docs/` (inherited from
+network call. Run on the [LightOS emulator](docs/system_app) for full compatibility,
+or any Android emulator/device for everyday development – see `docs/` (inherited from
 light-sdk) for details.
+
+---
+
+## Support
+
+If any of my tools have been useful to you, I'd love to hear from you! Feel free to reach out [here](mailto:zacksimpson24@gmail.com). Another way to support is to [consider sponsoring](https://github.com/sponsors/zacksimpson). Either way, it means a lot!
+
+---
+
+## Credits
+
+* [The Light Phone](https://www.thelightphone.com) – for building a phone worth making apps for
+* [Crossway](https://www.crossway.org) – for the ESV® Bible text, made available via the [ESV API](https://api.esv.org)
