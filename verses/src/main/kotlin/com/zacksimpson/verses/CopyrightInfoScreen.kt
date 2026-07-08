@@ -30,9 +30,10 @@ private const val ESV_COPYRIGHT_NOTICE = "Scripture quotations are from the ESVÂ
 private const val ESV_TRADEMARK_NOTICE = "\"ESV\" and \"English Standard Version\" are " +
     "registered trademarks of Crossway."
 
-private const val ESV_USAGE_NOTE = "Verse text is fetched live from the official ESV API " +
-    "(api.esv.org) each day rather than stored in this app, under Crossway's terms for " +
-    "free, non-commercial use."
+private const val ESV_USAGE_NOTE = "Verse text is fetched from the official ESV API " +
+    "(api.esv.org) once per day and cached on-device so the tool works offline; only the " +
+    "current day's verse is kept, and it's replaced the next time a new verse is fetched, " +
+    "under Crossway's terms for free, non-commercial use."
 
 class CopyrightInfoScreen(sealedActivity: SealedLightActivity) : SimpleLightScreen<Unit>(sealedActivity) {
 
