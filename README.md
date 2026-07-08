@@ -1,6 +1,6 @@
 # verses-tool
 
-A "Verses" tool for the Light Phone III — shows one Bible verse per day (ESV translation),
+A simple daily Bible verse tool for the Light Phone III,
 built with the official [Light SDK](https://github.com/lightphone/light-sdk).
 
 This repo is a fork of light-sdk's scaffolding (`sdk/`, `plugin/`, `lint-rules/`, etc.) with
