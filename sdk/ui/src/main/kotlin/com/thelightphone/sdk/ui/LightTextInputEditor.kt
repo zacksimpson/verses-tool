@@ -51,6 +51,7 @@ fun LightTextInputEditor(
     showBackButton: Boolean = true,
     singleLine: Boolean = false,
     editorKey: Any = title,
+    inputTextVariant: LightTextVariant = LightTextVariant.Heading,
 ) {
     val currentOnSubmit by rememberUpdatedState(onSubmit)
     val keyboardCallback = remember(state, singleLine) {
@@ -77,6 +78,7 @@ fun LightTextInputEditor(
         submitIcon,
         showBackButton,
         singleLine,
+        inputTextVariant,
     )
 }
 
@@ -99,9 +101,10 @@ fun LightTextInputEditor(
     submitIcon: LightIconConfiguration? = null,
     showBackButton: Boolean = true,
     singleLine: Boolean = false,
+    inputTextVariant: LightTextVariant = LightTextVariant.Heading,
 ) {
     val colors = LightThemeTokens.colors
-    val inputStyle = lightInputTextStyle()
+    val inputStyle = lightInputTextStyle(inputTextVariant)
     var textLayout by remember { mutableStateOf<TextLayoutResult?>(null) }
 
     Surface {
@@ -212,15 +215,12 @@ private fun factory(
     }
 
 @Composable
-private fun lightInputTextStyle(): TextStyle {
+private fun lightInputTextStyle(variant: LightTextVariant): TextStyle {
     val colors = LightThemeTokens.colors
-    val t = LightThemeTokens.typography
-    return t.heading
-        .copy(
-            color = colors.content,
-            textDecoration = TextDecoration.Underline,
-        )
-        .scaledForScreenHeight()
+    return variantStyle(variant).copy(
+        color = colors.content,
+        textDecoration = TextDecoration.Underline,
+    )
 }
 
 @Preview(widthDp = 1080 / 3, heightDp = 1240 / 3, showBackground = true)

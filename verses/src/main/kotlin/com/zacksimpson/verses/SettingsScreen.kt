@@ -43,6 +43,10 @@ class SettingsScreen(sealedActivity: SealedLightActivity) : SimpleLightScreen<Un
                     )
 
                     SettingsLinkRow(
+                        label = "View All Notes",
+                        onClick = { navigateTo(screenFactory = { AllNotesScreen(it) }) },
+                    )
+                    SettingsLinkRow(
                         label = "Copyright Info",
                         onClick = { navigateTo(screenFactory = { CopyrightInfoScreen(it) }) },
                     )
