@@ -30,7 +30,9 @@ Shows one verse a day, refreshed automatically each morning. Look up the verse f
 ## Installing on Light Phone III
 > [!WARNING]
 > **This project is in early development and is not ready for production.** Expect rough edges and missing features. That said, feel free to download, use it, and give feedback on its direction!
-
+* Highly recommend using [Obtainium](https://github.com/ImranR98/Obtainium) to ensure you receive future updates and new features automatically. Just add [the repo URL](https://github.com/zacksimpson/verses-tool/), make sure you're able to install apps from unknown sources, and you're all set.
+* Alternatively, you can download the latest APK from the Releases tab.
+* Once the official Light SDK matures and LightOS enables support for installing APKs from the Dashboard, installing there will eventually be an option as well – but not for now.
 <details>
 <summary><strong>Building from Source</strong></summary>
 
