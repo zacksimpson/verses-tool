@@ -33,6 +33,7 @@ jobs:
         run: |
           echo "sdk.dir=$ANDROID_HOME" >> local.properties
           echo "esvApiKey=${{ secrets.ESV_API_KEY }}" >> local.properties
+          echo "youVersionAppKey=${{ secrets.YOUVERSION_APP_KEY }}" >> local.properties
           echo "gpr.user=${{ secrets.GH_PACKAGES_USER }}" >> local.properties
           echo "gpr.key=${{ secrets.GH_PACKAGES_TOKEN }}" >> local.properties
 
