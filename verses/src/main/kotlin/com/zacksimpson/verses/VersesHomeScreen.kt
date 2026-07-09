@@ -122,9 +122,8 @@ class VersesHomeScreen(sealedActivity: SealedLightActivity) :
                                             vertical = 1.5f.gridUnitsAsDp(),
                                         ),
                                 ) {
-                                    LightText(
+                                    VerseText(
                                         text = mode.text,
-                                        variant = LightTextVariant.Heading,
                                         modifier = Modifier.padding(bottom = 0.5f.gridUnitsAsDp()),
                                     )
                                     Row(verticalAlignment = Alignment.CenterVertically) {

@@ -84,8 +84,8 @@ class MemorizeScreen(
                                 ),
                             ) {
                                 FlowRow(
-                                    horizontalArrangement = Arrangement.spacedBy(4.dp),
-                                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                                    horizontalArrangement = Arrangement.spacedBy(VERSE_WORD_HORIZONTAL_GAP),
+                                    verticalArrangement = Arrangement.spacedBy(VERSE_WORD_VERTICAL_GAP),
                                 ) {
                                     words.forEachIndexed { index, word ->
                                         BlankableWord(word = word, isBlank = index in blankedIndices)
