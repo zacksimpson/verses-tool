@@ -156,6 +156,13 @@ class VersesHomeScreen(sealedActivity: SealedLightActivity) :
 
                 val bottomBarItems = buildList {
                     val loaded = state as? VerseUiState.Loaded
+                    add(
+                        LightBarButton.LightIcon(
+                            icon = LightIcons.SETTINGS,
+                            onClick = { navigateTo(screenFactory = { SettingsScreen(it) }) },
+                            contentDescription = "Settings",
+                        ),
+                    )
                     if (loaded != null) {
                         val memorizeIcon = if (LightThemeTokens.surfaceScheme == LightSurfaceScheme.Dark) {
                             R.drawable.ic_memorize_white
@@ -175,13 +182,6 @@ class VersesHomeScreen(sealedActivity: SealedLightActivity) :
                             ),
                         )
                     }
-                    add(
-                        LightBarButton.LightIcon(
-                            icon = LightIcons.SETTINGS,
-                            onClick = { navigateTo(screenFactory = { SettingsScreen(it) }) },
-                            contentDescription = "Settings",
-                        ),
-                    )
                 }
 
                 LightBottomBar(items = bottomBarItems)
