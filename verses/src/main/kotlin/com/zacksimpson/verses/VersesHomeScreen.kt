@@ -122,9 +122,8 @@ class VersesHomeScreen(sealedActivity: SealedLightActivity) :
                                             vertical = 1.5f.gridUnitsAsDp(),
                                         ),
                                 ) {
-                                    LightText(
+                                    VerseText(
                                         text = mode.text,
-                                        variant = LightTextVariant.Heading,
                                         modifier = Modifier.padding(bottom = 0.5f.gridUnitsAsDp()),
                                     )
                                     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -154,15 +153,37 @@ class VersesHomeScreen(sealedActivity: SealedLightActivity) :
                     }
                 }
 
-                LightBottomBar(
-                    items = listOf(
+                val bottomBarItems = buildList {
+                    val loaded = state as? VerseUiState.Loaded
+                    add(
                         LightBarButton.LightIcon(
                             icon = LightIcons.SETTINGS,
                             onClick = { navigateTo(screenFactory = { SettingsScreen(it) }) },
                             contentDescription = "Settings",
                         ),
-                    ),
-                )
+                    )
+                    if (loaded != null) {
+                        val memorizeIcon = if (LightThemeTokens.surfaceScheme == LightSurfaceScheme.Dark) {
+                            R.drawable.ic_memorize_white
+                        } else {
+                            R.drawable.ic_memorize_black
+                        }
+                        add(
+                            LightBarButton.Icon(
+                                painter = painterResource(memorizeIcon),
+                                onClick = {
+                                    navigateTo(
+                                        screenFactory = { MemorizeScreen(it, loaded.reference, loaded.text) },
+                                    )
+                                },
+                                sizeUnits = 2.5f,
+                                contentDescription = "Memorize this verse",
+                            ),
+                        )
+                    }
+                }
+
+                LightBottomBar(items = bottomBarItems)
             }
         }
     }
