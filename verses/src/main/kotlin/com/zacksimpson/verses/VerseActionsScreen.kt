@@ -55,6 +55,7 @@ class VerseActionsScreen(
     private val date: String,
     private val reference: String,
     private val verseText: String,
+    private val translation: Translation,
 ) : LightScreen<Unit, VerseActionsViewModel>(sealedActivity) {
 
     override val viewModelClass: Class<VerseActionsViewModel>
@@ -84,7 +85,9 @@ class VerseActionsScreen(
                     ActionRow(
                         text = "Copy",
                         onClick = {
-                            clipboardManager.setText(AnnotatedString("$verseText\n\n$reference (ESV)"))
+                            clipboardManager.setText(
+                                AnnotatedString("$verseText\n\n$reference (${translation.abbreviation})"),
+                            )
                             goBack(Unit)
                         },
                     )
