@@ -20,7 +20,9 @@ Shows one verse a day, refreshed automatically each morning. Look up the verse f
 *If you have a specific version you'd like to see in Verses, [open an issue](https://github.com/zacksimpson/verses-tool/issues?q=state%3Aopen%20label%3ATranslations) with the request and I will gladly look into it!*
 
 **Currently Supported:**
-* English Standard Version
+* English Standard Version (ESV)
+* New International Version (NIV)
+* New American Standard Bible (NASB)
 * (More to come!)
 
 ---
@@ -60,3 +62,4 @@ If any of my tools have been useful to you, I'd love to hear from you! Feel free
 
 * [The Light Phone](https://www.thelightphone.com) – for building a phone worth making apps for
 * [Crossway](https://www.crossway.org) – for the ESV® Bible text, made available via the [ESV API](https://api.esv.org)
+* [YouVersion Platform](https://platform.youversion.com) – for the NIV® and NASB® Bible translations, made available via the [YouVersion API](https://developers.youversion.com/api/data-exchange)
