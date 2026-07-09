@@ -154,15 +154,37 @@ class VersesHomeScreen(sealedActivity: SealedLightActivity) :
                     }
                 }
 
-                LightBottomBar(
-                    items = listOf(
+                val bottomBarItems = buildList {
+                    val loaded = state as? VerseUiState.Loaded
+                    if (loaded != null) {
+                        val memorizeIcon = if (LightThemeTokens.surfaceScheme == LightSurfaceScheme.Dark) {
+                            R.drawable.ic_memorize_white
+                        } else {
+                            R.drawable.ic_memorize_black
+                        }
+                        add(
+                            LightBarButton.Icon(
+                                painter = painterResource(memorizeIcon),
+                                onClick = {
+                                    navigateTo(
+                                        screenFactory = { MemorizeScreen(it, loaded.reference, loaded.text) },
+                                    )
+                                },
+                                sizeUnits = 2.5f,
+                                contentDescription = "Memorize this verse",
+                            ),
+                        )
+                    }
+                    add(
                         LightBarButton.LightIcon(
                             icon = LightIcons.SETTINGS,
                             onClick = { navigateTo(screenFactory = { SettingsScreen(it) }) },
                             contentDescription = "Settings",
                         ),
-                    ),
-                )
+                    )
+                }
+
+                LightBottomBar(items = bottomBarItems)
             }
         }
     }
