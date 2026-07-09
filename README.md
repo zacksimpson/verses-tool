@@ -2,7 +2,7 @@
 
 A daily Bible verse tool for the Light Phone III, built with the official [Light SDK](https://github.com/lightphone/light-sdk).
 
-Shows one verse a day, refreshed automatically each morning. Look up the verse for any past date, jot a note against any verse, and work on memorizing God's word.
+Shows one verse a day, refreshed automatically each morning. Look up the verse for any past date, jot a note against any verse, and spend focused time memorizing God's word.
 
 ---
 
@@ -12,7 +12,7 @@ Shows one verse a day, refreshed automatically each morning. Look up the verse f
 * Look up the verse for any past date
 * Add free-text notes to any verse, and edit them anytime
 * All your notes in one place, most recent first
-* Memorize mode: hide a few random words at a time, with forward/back to gradually hide / reveal more
+* Memorize mode: hide a few random words at a time, with forward/back buttons to gradually hide/reveal the text
 
 ---
 
