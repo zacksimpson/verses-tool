@@ -28,6 +28,7 @@ android {
         if (f.exists()) f.inputStream().use { load(it) }
     }
     val esvApiKey = localProps.getProperty("esvApiKey", "")
+    val youVersionAppKey = localProps.getProperty("youVersionAppKey", "")
 
     defaultConfig {
         minSdk = rootProject.ext["minSdk"] as Int
@@ -35,6 +36,7 @@ android {
 
         manifestPlaceholders["sdkVersion"] = property("sdkVersion") as String
         buildConfigField("String", "ESV_API_KEY", "\"$esvApiKey\"")
+        buildConfigField("String", "YOUVERSION_APP_KEY", "\"$youVersionAppKey\"")
     }
 
     buildFeatures {

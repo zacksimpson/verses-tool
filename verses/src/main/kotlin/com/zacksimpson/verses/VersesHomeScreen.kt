@@ -112,7 +112,13 @@ class VersesHomeScreen(sealedActivity: SealedLightActivity) :
                                             onLongClick = {
                                                 navigateTo(
                                                     screenFactory = {
-                                                        VerseActionsScreen(it, today, mode.reference, mode.text)
+                                                        VerseActionsScreen(
+                                                            it,
+                                                            today,
+                                                            mode.reference,
+                                                            mode.text,
+                                                            mode.translation,
+                                                        )
                                                     },
                                                 )
                                             },
@@ -128,7 +134,7 @@ class VersesHomeScreen(sealedActivity: SealedLightActivity) :
                                     )
                                     Row(verticalAlignment = Alignment.CenterVertically) {
                                         LightText(
-                                            text = "${mode.reference} (ESV)",
+                                            text = "${mode.reference} (${mode.translation.abbreviation})",
                                             variant = LightTextVariant.Copy,
                                         )
                                         if (hasNote) {
@@ -173,7 +179,9 @@ class VersesHomeScreen(sealedActivity: SealedLightActivity) :
                                 painter = painterResource(memorizeIcon),
                                 onClick = {
                                     navigateTo(
-                                        screenFactory = { MemorizeScreen(it, loaded.reference, loaded.text) },
+                                        screenFactory = {
+                                            MemorizeScreen(it, loaded.reference, loaded.text, loaded.translation)
+                                        },
                                     )
                                 },
                                 sizeUnits = 2.5f,

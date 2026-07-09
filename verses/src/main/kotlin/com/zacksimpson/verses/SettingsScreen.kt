@@ -43,6 +43,10 @@ class SettingsScreen(sealedActivity: SealedLightActivity) : SimpleLightScreen<Un
                     )
 
                     SettingsLinkRow(
+                        label = "Translation",
+                        onClick = { navigateTo(screenFactory = { TranslationPickerScreen(it) }) },
+                    )
+                    SettingsLinkRow(
                         label = "View All Notes",
                         onClick = { navigateTo(screenFactory = { AllNotesScreen(it) }) },
                     )

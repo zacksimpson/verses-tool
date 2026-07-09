@@ -17,6 +17,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import kotlinx.coroutines.flow.first
 import com.thelightphone.sdk.SealedLightActivity
 import com.thelightphone.sdk.SimpleLightScreen
 import com.thelightphone.sdk.ui.LightBarButton
@@ -50,20 +51,29 @@ class VerseForDateScreen(
         val hasNote = remember(notes, dateStr) { notes.any { it.date == dateStr } }
 
         LaunchedEffect(dateStr) {
-            if (BuildConfig.ESV_API_KEY.isBlank()) {
-                state = VerseUiState.ConfigError(
-                    "Add your ESV API key to local.properties (esvApiKey=...) to use this tool.",
+            val prefs = lightContext.dataStore.data.first()
+            val translation = prefs.selectedTranslation()
+            val fetcher = VerseFetcher()
+
+            try {
+                if (!fetcher.isConfigured(translation)) {
+                    state = VerseUiState.ConfigError(fetcher.missingKeyMessage(translation))
+                    return@LaunchedEffect
+                }
+
+                val reference = VerseSelector.referenceForDate(LocalDate.parse(dateStr))
+                val result = fetcher.fetchVerseText(translation, reference)
+                state = result.fold(
+                    onSuccess = { text -> VerseUiState.Loaded(reference = reference, text = text, translation = translation) },
+                    onFailure = { VerseUiState.ConfigError("Couldn't load that day's verse. Try again shortly.") },
                 )
-                return@LaunchedEffect
+            } finally {
+                // In a finally (not a plain sequential call) so this still runs if the
+                // coroutine is cancelled mid-fetch — e.g. the user navigates to another
+                // date before this one's request completes — otherwise the two HTTP
+                // clients VerseFetcher owns are abandoned without being shut down.
+                fetcher.close()
             }
-            val reference = VerseSelector.referenceForDate(LocalDate.parse(dateStr))
-            val api = EsvApi(apiKey = BuildConfig.ESV_API_KEY)
-            val result = api.fetchVerseText(reference)
-            api.close()
-            state = result.fold(
-                onSuccess = { text -> VerseUiState.Loaded(reference = reference, text = text) },
-                onFailure = { VerseUiState.ConfigError("Couldn't load that day's verse. Check your connection.") },
-            )
         }
 
         LightTheme(colors = themeColors) {
@@ -109,7 +119,13 @@ class VerseForDateScreen(
                                                 onLongClick = {
                                                     navigateTo(
                                                         screenFactory = {
-                                                            VerseActionsScreen(it, dateStr, mode.reference, mode.text)
+                                                            VerseActionsScreen(
+                                                                it,
+                                                                dateStr,
+                                                                mode.reference,
+                                                                mode.text,
+                                                                mode.translation,
+                                                            )
                                                         },
                                                     )
                                                 },
@@ -125,7 +141,7 @@ class VerseForDateScreen(
                                         )
                                         Row(verticalAlignment = Alignment.CenterVertically) {
                                             LightText(
-                                                text = "${mode.reference} (ESV)",
+                                                text = "${mode.reference} (${mode.translation.abbreviation})",
                                                 variant = LightTextVariant.Copy,
                                             )
                                             if (hasNote) {
