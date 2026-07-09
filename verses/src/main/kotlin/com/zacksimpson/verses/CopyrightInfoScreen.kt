@@ -23,18 +23,11 @@ import com.thelightphone.sdk.ui.LightTopBar
 import com.thelightphone.sdk.ui.LightTopBarCenter
 import com.thelightphone.sdk.ui.gridUnitsAsDp
 
-private const val ESV_COPYRIGHT_NOTICE = "Scripture quotations are from the ESV® Bible " +
-    "(The Holy Bible, English Standard Version®), copyright © 2001 by Crossway, a publishing " +
-    "ministry of Good News Publishers. Used by permission. All rights reserved."
-
-private const val ESV_TRADEMARK_NOTICE = "\"ESV\" and \"English Standard Version\" are " +
-    "registered trademarks of Crossway."
-
-private const val ESV_USAGE_NOTE = "Verse text is fetched from the official ESV API " +
-    "(api.esv.org) once per day and cached on-device so the tool works offline; only the " +
-    "current day's verse is kept, and it's replaced the next time a new verse is fetched, " +
-    "under Crossway's terms for free, non-commercial use."
-
+/**
+ * Renders straight from Translation.entries so a translation's copyright/trademark
+ * notice can't be forgotten when a new one is added — see Translation.kt's
+ * copyrightNotice/trademarkNotice fields, which the constructor requires for every case.
+ */
 class CopyrightInfoScreen(sealedActivity: SealedLightActivity) : SimpleLightScreen<Unit>(sealedActivity) {
 
     @Composable
@@ -58,28 +51,41 @@ class CopyrightInfoScreen(sealedActivity: SealedLightActivity) : SimpleLightScre
                         modifier = Modifier.fillMaxSize(),
                         scrollBarPosition = LightScrollBarPosition.Inside,
                     ) {
-                        LightText(
-                            text = ESV_COPYRIGHT_NOTICE,
-                            variant = LightTextVariant.Paragraph,
-                            modifier = Modifier
-                                .padding(horizontal = 1f.gridUnitsAsDp())
-                                .padding(bottom = 1f.gridUnitsAsDp()),
-                        )
-                        LightText(
-                            text = ESV_TRADEMARK_NOTICE,
-                            variant = LightTextVariant.Paragraph,
-                            modifier = Modifier
-                                .padding(horizontal = 1f.gridUnitsAsDp())
-                                .padding(bottom = 1f.gridUnitsAsDp()),
-                        )
-                        LightText(
-                            text = ESV_USAGE_NOTE,
-                            variant = LightTextVariant.Paragraph,
-                            modifier = Modifier.padding(horizontal = 1f.gridUnitsAsDp()),
-                        )
+                        Column(modifier = Modifier.padding(horizontal = 1f.gridUnitsAsDp())) {
+                            Translation.entries.forEach { translation ->
+                                NoticeHeader(translation.displayName)
+                                NoticeParagraph(translation.copyrightNotice)
+                                NoticeParagraph(translation.trademarkNotice)
+                            }
+
+                            // Deduplicated by content — NIV and NASB share the same
+                            // YouVersion note, so it's shown once, not once per translation.
+                            val usageNotes = Translation.entries.map { it.source.usageNote }.distinct()
+                            usageNotes.forEachIndexed { index, note ->
+                                NoticeParagraph(note, bottomPadding = if (index == usageNotes.lastIndex) 0f else 1f)
+                            }
+                        }
                     }
                 }
             }
         }
     }
+}
+
+@Composable
+private fun NoticeHeader(text: String) {
+    LightText(
+        text = text,
+        variant = LightTextVariant.Subheading,
+        modifier = Modifier.padding(bottom = 0.5f.gridUnitsAsDp()),
+    )
+}
+
+@Composable
+private fun NoticeParagraph(text: String, bottomPadding: Float = 1f) {
+    LightText(
+        text = text,
+        variant = LightTextVariant.Paragraph,
+        modifier = Modifier.padding(bottom = bottomPadding.gridUnitsAsDp()),
+    )
 }

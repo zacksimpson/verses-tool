@@ -46,6 +46,7 @@ class MemorizeScreen(
     sealedActivity: SealedLightActivity,
     private val reference: String,
     private val verseText: String,
+    private val translation: Translation,
 ) : SimpleLightScreen<Unit>(sealedActivity) {
 
     @Composable
@@ -92,7 +93,7 @@ class MemorizeScreen(
                                     }
                                 }
                                 LightText(
-                                    text = "$reference (ESV)",
+                                    text = "$reference (${translation.abbreviation})",
                                     variant = LightTextVariant.Copy,
                                     modifier = Modifier.padding(top = 0.5f.gridUnitsAsDp()),
                                 )
