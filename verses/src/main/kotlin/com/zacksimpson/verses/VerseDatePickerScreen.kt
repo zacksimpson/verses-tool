@@ -100,7 +100,9 @@ class VerseDatePickerScreen(
         val rows = cells.chunked(7).map { row -> (row + List(7) { null }).take(7) }
 
         LightTheme(colors = themeColors) {
-            SwipeBackContainer(onSwipeBack = { goBack(Unit) }) {
+            // Modal-style (X to dismiss, no back chevron) — swipe-back is intentionally
+            // off so there's exactly one way out, matching the affordance shown.
+            SwipeBackContainer(enabled = false, onSwipeBack = { goBack(Unit) }) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
