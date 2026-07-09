@@ -17,10 +17,11 @@ Shows one verse a day, refreshed automatically each morning. Look up the verse f
 ---
 
 ## Translations
+*If you have a specific version you'd like to see in Verses, [open an issue](https://github.com/zacksimpson/verses-tool/issues?q=state%3Aopen%20label%3ATranslations) with the request and I will gladly look into it!*
 
+**Currently Supported:**
 * English Standard Version
-* (More translations to come!)
-* If you have a specific version in mind, open an issue with the request and I will gladly look into it!
+* (More to come!)
 
 ---
 
