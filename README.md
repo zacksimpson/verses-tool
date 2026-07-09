@@ -2,16 +2,25 @@
 
 A daily Bible verse tool for the Light Phone III, built with the official [Light SDK](https://github.com/lightphone/light-sdk).
 
-Shows one verse a day from the ESV translation, refreshed automatically each morning. Look up the verse for any past date, jot a note against any verse, and revisit your notes later.
+Shows one verse a day, refreshed automatically each morning. Look up the verse for any past date, jot a note against any verse, and work on memorizing God's word.
 
 ---
 
 ## Features
 
-* One Bible verse a day (ESV translation), cycling through a bundled reference list by day-of-year
+* One Bible verse a day, cycling through a bundled reference list by day-of-year
 * Look up the verse for any past date
 * Add free-text notes to any verse, and edit them anytime
 * All your notes in one place, most recent first
+* Memorize mode: hide a few random words at a time, with forward/back to gradually hide / reveal more
+
+---
+
+## Translations
+
+* English Standard Version
+* (More translations to come!)
+* If you have a specific version in mind, open an issue with the request and I will gladly look into it!
 
 ---
 
