@@ -31,6 +31,11 @@ Shows one verse a day, refreshed automatically each morning. Look up the verse f
 
 Not yet published – no APK release exists yet. In the meantime, build from source:
 
+<details>
+<summary><strong>Building from Source</strong></summary>
+
+**ESV**
+
 1. Get a free ESV API key at https://api.esv.org (sign up, create an API application).
 2. Add it to this repo's root `local.properties` (gitignored, create the file if it
    doesn't exist):
@@ -39,16 +44,29 @@ Not yet published – no APK release exists yet. In the meantime, build from sou
    esvApiKey=your_key_here
    ```
 
-3. Open in Android Studio, or build from the command line:
+**YouVersion Platform (NIV, NASB)**
+
+1. Request an app key at https://developers.youversion.com (sign up, create an app).
+2. Add it to the same `local.properties` file:
 
    ```
-   ./gradlew :verses:assembleDebug
+   youVersionAppKey=your_key_here
    ```
+
+**Build**
+
+Open in Android Studio, or build from the command line:
+
+```
+./gradlew :verses:assembleDebug
+```
 
 Without a key, the tool shows a message asking you to add one instead of making a
 network call. Run on the [LightOS emulator](docs/system_app) for full compatibility,
 or any Android emulator/device for everyday development – see `docs/` (inherited from
 light-sdk) for details.
+
+</details>
 
 ---
 
