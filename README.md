@@ -28,8 +28,8 @@ Shows one verse a day, refreshed automatically each morning. Look up the verse f
 ---
 
 ## Installing on Light Phone III
-
-Not yet published – no APK release exists yet. In the meantime, build from source:
+> [!WARNING]
+> **This project is in early development and is not ready for production.** Expect rough edges and missing features. That said, feel free to download, use it, and give feedback on its direction!
 
 <details>
 <summary><strong>Building from Source</strong></summary>
@@ -72,7 +72,7 @@ light-sdk) for details.
 
 ## Support
 
-If any of my tools have been useful to you, I'd love to hear from you! Feel free to reach out [here](mailto:zacksimpson24@gmail.com).
+If any of my tools have been useful to you, I'd love to hear from you! Feel free to [email me](mailto:zacksimpson24@gmail.com), or [open an issue](https://github.com/zacksimpson/verses-tool/issues/) with your feedback.
 
 ---
 
