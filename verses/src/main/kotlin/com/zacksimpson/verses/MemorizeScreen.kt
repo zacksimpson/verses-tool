@@ -11,8 +11,9 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
@@ -38,9 +39,11 @@ import com.thelightphone.sdk.ui.gridUnitsAsDp
 /**
  * Word-by-word memorization drill. The forward chevron blanks 2-4 more random words at
  * a time (underline in place of each word, same width, punctuation included in the
- * blank); the back chevron un-blanks exactly the batch the last forward tap added. The
- * random order is generated once when the screen opens and just walked back and forth —
- * it isn't re-rolled or persisted, so leaving and reopening starts a fresh attempt.
+ * blank); the back chevron un-blanks exactly the batch the last forward tap added. Both
+ * the random reveal order and the batch sizes are generated once when the screen opens
+ * and then just walked back and forth by index, so repeatedly tapping forward/back always
+ * lands on the same words at the same step — it isn't re-rolled or persisted, so leaving
+ * and reopening starts a fresh attempt.
  */
 class MemorizeScreen(
     sealedActivity: SealedLightActivity,
@@ -56,8 +59,18 @@ class MemorizeScreen(
             verseText.split(Regex("\\s+")).filter { it.isNotEmpty() }
         }
         val blankOrder = remember(verseText) { words.indices.shuffled() }
-        val stepSizes = remember(verseText) { mutableStateListOf<Int>() }
-        val blankedCount = stepSizes.sum()
+        val stepSizes = remember(verseText) {
+            val sizes = mutableListOf<Int>()
+            var remaining = words.size
+            while (remaining > 0) {
+                val size = (2..4).random().coerceAtMost(remaining)
+                sizes.add(size)
+                remaining -= size
+            }
+            sizes
+        }
+        var stepIndex by remember(verseText) { mutableStateOf(0) }
+        val blankedCount = stepSizes.take(stepIndex).sum()
         val blankedIndices = remember(blankedCount) { blankOrder.take(blankedCount).toSet() }
 
         LightTheme(colors = themeColors) {
@@ -105,8 +118,8 @@ class MemorizeScreen(
                         items = listOf(
                             LightBarButton.LightIcon(
                                 icon = LightIcons.BACK,
-                                onClick = if (stepSizes.isNotEmpty()) {
-                                    { stepSizes.removeAt(stepSizes.lastIndex) }
+                                onClick = if (stepIndex > 0) {
+                                    { stepIndex-- }
                                 } else {
                                     null
                                 },
@@ -114,11 +127,8 @@ class MemorizeScreen(
                             ),
                             LightBarButton.LightIcon(
                                 icon = LightIcons.ARROW_RIGHT,
-                                onClick = if (blankedCount < words.size) {
-                                    {
-                                        val remaining = words.size - blankedCount
-                                        stepSizes.add((2..4).random().coerceAtMost(remaining))
-                                    }
+                                onClick = if (stepIndex < stepSizes.size) {
+                                    { stepIndex++ }
                                 } else {
                                     null
                                 },
