@@ -86,7 +86,12 @@ internal object UsfmReference {
         val match = REFERENCE_PATTERN.matchEntire(reference)
             ?: error("Reference '$reference' doesn't match the expected 'Book Chapter:Verse[-Verse]' format")
         val (bookName, chapter, verse, endVerse) = match.destructured
-        val code = BOOK_CODES[bookName] ?: error("Unknown book name '$bookName' in reference '$reference'")
+        val code = bookCode(bookName)
         return if (endVerse.isEmpty()) "$code.$chapter.$verse" else "$code.$chapter.$verse-$endVerse"
     }
+
+    /** Looks up a book name's USFM code directly, for callers that already have a book
+     *  name and chapter number rather than a full "Book Chapter:Verse" reference. */
+    fun bookCode(bookName: String): String =
+        BOOK_CODES[bookName] ?: error("Unknown book name '$bookName'")
 }
