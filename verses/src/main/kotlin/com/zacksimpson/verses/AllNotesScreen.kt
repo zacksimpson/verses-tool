@@ -12,6 +12,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.lifecycle.viewModelScope
 import com.thelightphone.sdk.LightScreen
 import com.thelightphone.sdk.LightViewModel
@@ -50,9 +51,9 @@ class AllNotesViewModel(
 
 /**
  * Every saved note, most recent first, each shown alongside its verse reference and
- * date. Tapping a note reopens it for editing (pre-filled) — there's no separate
- * "view" vs "edit" mode, matching how notes are entered in the first place via
- * VerseActionsScreen's "Add Notes" row.
+ * date. Tapping a note opens a read-only ViewNoteScreen; its EDIT button is what reaches
+ * TextEditorScreen. ViewNoteScreen forwards TextEditorScreen's result straight back here,
+ * so this is still the only place that calls updateNote.
  */
 class AllNotesScreen(sealedActivity: SealedLightActivity) : LightScreen<Unit, AllNotesViewModel>(sealedActivity) {
 
@@ -98,9 +99,7 @@ class AllNotesScreen(sealedActivity: SealedLightActivity) : LightScreen<Unit, Al
                                         note = note,
                                         onClick = {
                                             navigateTo(
-                                                screenFactory = {
-                                                    TextEditorScreen(it, TextEditorRequest(note.reference, note.text))
-                                                },
+                                                screenFactory = { ViewNoteScreen(it, note) },
                                                 resultCallback = { text ->
                                                     viewModel.updateNote(note.id, text)
                                                 },
@@ -117,13 +116,24 @@ class AllNotesScreen(sealedActivity: SealedLightActivity) : LightScreen<Unit, Al
     }
 }
 
+// LightScrollView's Inside scrollbar floats over a 2-grid-unit-wide track at the trailing
+// edge rather than reserving a gutter, so this row's own end padding needs to cover that
+// track (plus a little breathing room) or long note text runs under the thumb.
+private const val NOTE_PREVIEW_MAX_LINES = 3
+private val NOTE_ROW_END_PADDING = 2.5f
+
 @Composable
 private fun NoteRow(note: VerseNote, onClick: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
-            .padding(horizontal = 1f.gridUnitsAsDp(), vertical = 0.75f.gridUnitsAsDp()),
+            .padding(
+                start = 1f.gridUnitsAsDp(),
+                end = NOTE_ROW_END_PADDING.gridUnitsAsDp(),
+                top = 0.75f.gridUnitsAsDp(),
+                bottom = 0.75f.gridUnitsAsDp(),
+            ),
     ) {
         LightText(
             text = "${note.reference} — ${formatDisplayDate(note.date)}",
@@ -133,6 +143,9 @@ private fun NoteRow(note: VerseNote, onClick: () -> Unit) {
         LightText(
             text = note.text,
             variant = LightTextVariant.Copy,
+            maxLines = NOTE_PREVIEW_MAX_LINES,
+            overflow = TextOverflow.Ellipsis,
+            lineHeightMultiplier = 0.85f,
         )
     }
 }
