@@ -35,7 +35,7 @@ enum class LightTextVariant {
 }
 
 @Composable
-private fun variantStyle(variant: LightTextVariant): TextStyle {
+internal fun variantStyle(variant: LightTextVariant): TextStyle {
     val t = LightThemeTokens.typography
     val base = when (variant) {
         LightTextVariant.Title -> t.title
@@ -84,6 +84,7 @@ fun LightText(
     maxLines: Int = Int.MAX_VALUE,
     overflow: TextOverflow = TextOverflow.Clip,
     color: Color? = null,
+    lineHeightMultiplier: Float? = null,
 ) {
     val colors = LightThemeTokens.colors
     val baseColor = when {
@@ -96,6 +97,13 @@ fun LightText(
         .let { if (align != null) it.copy(textAlign = align) else it }
         .let { if (underline) it.copy(textDecoration = TextDecoration.Underline) else it }
         .let { if (monospace) it.copy(fontFamily = FontFamily.Monospace) else it }
+        .let {
+            if (lineHeightMultiplier != null && it.lineHeight != TextUnit.Unspecified) {
+                it.copy(lineHeight = it.lineHeight * lineHeightMultiplier)
+            } else {
+                it
+            }
+        }
 
     Text(
         text = text,
