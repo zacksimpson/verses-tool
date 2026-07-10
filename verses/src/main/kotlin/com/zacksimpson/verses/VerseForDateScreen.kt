@@ -95,7 +95,7 @@ class VerseForDateScreen(
                                 LightText(
                                     text = "Loading…",
                                     variant = LightTextVariant.Copy,
-                                    modifier = Modifier.padding(horizontal = 1f.gridUnitsAsDp()),
+                                    modifier = Modifier.padding(horizontal = 1.5f.gridUnitsAsDp()),
                                 )
                             }
 
@@ -103,7 +103,7 @@ class VerseForDateScreen(
                                 LightText(
                                     text = mode.message,
                                     variant = LightTextVariant.Copy,
-                                    modifier = Modifier.padding(horizontal = 1f.gridUnitsAsDp()),
+                                    modifier = Modifier.padding(horizontal = 1.5f.gridUnitsAsDp()),
                                 )
                             }
 
@@ -131,7 +131,7 @@ class VerseForDateScreen(
                                                 },
                                             )
                                             .padding(
-                                                horizontal = 1f.gridUnitsAsDp(),
+                                                horizontal = 1.5f.gridUnitsAsDp(),
                                                 vertical = 1.5f.gridUnitsAsDp(),
                                             ),
                                     ) {

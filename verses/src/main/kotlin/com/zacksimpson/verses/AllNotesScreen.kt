@@ -87,7 +87,7 @@ class AllNotesScreen(sealedActivity: SealedLightActivity) : LightScreen<Unit, Al
                             LightText(
                                 text = "No notes yet — long-press any verse to add one.",
                                 variant = LightTextVariant.Copy,
-                                modifier = Modifier.padding(horizontal = 1f.gridUnitsAsDp()),
+                                modifier = Modifier.padding(horizontal = 1.5f.gridUnitsAsDp()),
                             )
                         } else {
                             LightScrollView(
@@ -129,7 +129,7 @@ private fun NoteRow(note: VerseNote, onClick: () -> Unit) {
             .fillMaxWidth()
             .clickable(onClick = onClick)
             .padding(
-                start = 1f.gridUnitsAsDp(),
+                start = 1.5f.gridUnitsAsDp(),
                 end = NOTE_ROW_END_PADDING.gridUnitsAsDp(),
                 top = 0.75f.gridUnitsAsDp(),
                 bottom = 0.75f.gridUnitsAsDp(),

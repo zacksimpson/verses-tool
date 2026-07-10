@@ -51,7 +51,7 @@ class CopyrightInfoScreen(sealedActivity: SealedLightActivity) : SimpleLightScre
                         modifier = Modifier.fillMaxSize(),
                         scrollBarPosition = LightScrollBarPosition.Inside,
                     ) {
-                        Column(modifier = Modifier.padding(horizontal = 1f.gridUnitsAsDp())) {
+                        Column(modifier = Modifier.padding(horizontal = 1.5f.gridUnitsAsDp())) {
                             Translation.entries.forEach { translation ->
                                 NoticeHeader(translation.displayName)
                                 NoticeParagraph(translation.copyrightNotice)
