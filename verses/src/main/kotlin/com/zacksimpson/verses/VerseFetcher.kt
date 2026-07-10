@@ -12,14 +12,16 @@ internal class VerseFetcher {
     private val esvApiLazy = lazy { EsvApi(apiKey = BuildConfig.ESV_API_KEY) }
     private val youVersionApiLazy = lazy { YouVersionApi(appKey = BuildConfig.YOUVERSION_APP_KEY) }
     private val bibleApiComLazy = lazy { BibleApiComApi() }
+    private val helloAoLazy = lazy { HelloAoApi() }
     private val esvApi by esvApiLazy
     private val youVersionApi by youVersionApiLazy
     private val bibleApiComApi by bibleApiComLazy
+    private val helloAoApi by helloAoLazy
 
     fun isConfigured(translation: Translation): Boolean = when (translation.source) {
         is TranslationSource.Esv -> BuildConfig.ESV_API_KEY.isNotBlank()
         is TranslationSource.YouVersion -> BuildConfig.YOUVERSION_APP_KEY.isNotBlank()
-        // bible-api.com is free and keyless — always configured.
+        // Both public domain providers are free and keyless — always configured.
         is TranslationSource.PublicDomain -> true
     }
 
@@ -38,7 +40,10 @@ internal class VerseFetcher {
         when (val source = translation.source) {
             is TranslationSource.Esv -> esvApi.fetchVerseText(reference)
             is TranslationSource.YouVersion -> youVersionApi.fetchVerseText(source.versionId, reference)
-            is TranslationSource.PublicDomain -> bibleApiComApi.fetchVerseText(reference)
+            is TranslationSource.PublicDomain -> when (source.provider) {
+                PublicDomainProvider.BIBLE_API_COM -> bibleApiComApi.fetchVerseText(reference)
+                PublicDomainProvider.HELLO_AO -> helloAoApi.fetchVerseText(reference)
+            }
         }
 
     /** Only public domain text has no rate limit or storage restriction to protect, so
@@ -46,8 +51,11 @@ internal class VerseFetcher {
      *  outright rather than silently fetching, enforcing "no continuous chapter browsing
      *  in copyrighted translations" here regardless of what UI calls this. */
     suspend fun fetchChapter(translation: Translation, book: String, chapter: Int): Result<BibleChapter> =
-        when (translation.source) {
-            is TranslationSource.PublicDomain -> bibleApiComApi.fetchChapter(book, chapter)
+        when (val source = translation.source) {
+            is TranslationSource.PublicDomain -> when (source.provider) {
+                PublicDomainProvider.BIBLE_API_COM -> bibleApiComApi.fetchChapter(book, chapter)
+                PublicDomainProvider.HELLO_AO -> helloAoApi.fetchChapter(book, chapter)
+            }
             is TranslationSource.Esv, is TranslationSource.YouVersion ->
                 Result.failure(
                     UnsupportedOperationException(
@@ -61,5 +69,6 @@ internal class VerseFetcher {
         if (esvApiLazy.isInitialized()) esvApi.close()
         if (youVersionApiLazy.isInitialized()) youVersionApi.close()
         if (bibleApiComLazy.isInitialized()) bibleApiComApi.close()
+        if (helloAoLazy.isInitialized()) helloAoApi.close()
     }
 }
