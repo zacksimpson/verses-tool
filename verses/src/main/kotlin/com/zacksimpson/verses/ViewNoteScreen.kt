@@ -1,6 +1,7 @@
 package com.zacksimpson.verses
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -10,6 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextAlign
 import com.thelightphone.sdk.SealedLightActivity
 import com.thelightphone.sdk.SimpleLightScreen
 import com.thelightphone.sdk.ui.LightBarButton
@@ -26,7 +28,9 @@ import com.thelightphone.sdk.ui.LightTopBarCenter
 import com.thelightphone.sdk.ui.gridUnitsAsDp
 
 /**
- * Read-only view of one saved note, reached from All Notes. Tapping EDIT pushes the
+ * Read-only view of one saved note, reached from All Notes. The header title jumps to
+ * the original verse (VerseForDateScreen for the note's date); EDIT sits at the bottom
+ * of the scroll content, matching reminders-native's DELETE row styling. EDIT pushes the
  * existing [TextEditorScreen] and forwards whatever it returns straight back up via
  * goBack, so All Notes (which owns the update call) doesn't need to know this screen
  * exists in between — backing out without editing calls goBack(null), which the SDK
@@ -50,16 +54,10 @@ class ViewNoteScreen(
                 ) {
                     LightTopBar(
                         leftButton = LightBarButton.LightIcon(LightIcons.BACK, onClick = { goBack(null) }),
-                        center = LightTopBarCenter.Text(note.reference),
-                        rightButton = LightBarButton.Text(
-                            text = "EDIT",
+                        center = LightTopBarCenter.Text(
+                            text = note.reference,
                             onClick = {
-                                navigateTo(
-                                    screenFactory = {
-                                        TextEditorScreen(it, TextEditorRequest(note.reference, note.text))
-                                    },
-                                    resultCallback = { text -> goBack(text) },
-                                )
+                                navigateTo(screenFactory = { VerseForDateScreen(it, note.date) })
                             },
                         ),
                         modifier = Modifier.padding(bottom = 1f.gridUnitsAsDp()),
@@ -79,7 +77,6 @@ class ViewNoteScreen(
                                 LightText(
                                     text = formatDisplayDate(note.date),
                                     variant = LightTextVariant.Detail,
-                                    lighten = true,
                                     modifier = Modifier.padding(bottom = 0.5f.gridUnitsAsDp()),
                                 )
                                 LightText(
@@ -87,6 +84,26 @@ class ViewNoteScreen(
                                     variant = LightTextVariant.Paragraph,
                                 )
                             }
+
+                            LightText(
+                                text = "EDIT",
+                                variant = LightTextVariant.Button,
+                                align = TextAlign.Center,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
+                                        navigateTo(
+                                            screenFactory = {
+                                                TextEditorScreen(it, TextEditorRequest(note.reference, note.text))
+                                            },
+                                            resultCallback = { text -> goBack(text) },
+                                        )
+                                    }
+                                    .padding(
+                                        horizontal = 1.5f.gridUnitsAsDp(),
+                                        vertical = 1.8f.gridUnitsAsDp(),
+                                    ),
+                            )
                         }
                     }
                 }
