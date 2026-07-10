@@ -111,7 +111,7 @@ class VerseDatePickerScreen(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 1f.gridUnitsAsDp()),
+                        .padding(horizontal = 1.5f.gridUnitsAsDp()),
                 ) {
                     Row(
                         modifier = Modifier

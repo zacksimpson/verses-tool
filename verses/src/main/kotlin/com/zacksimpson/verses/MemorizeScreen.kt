@@ -93,7 +93,7 @@ class MemorizeScreen(
                         ) {
                             Column(
                                 modifier = Modifier.padding(
-                                    horizontal = 1f.gridUnitsAsDp(),
+                                    horizontal = 1.5f.gridUnitsAsDp(),
                                     vertical = 1.5f.gridUnitsAsDp(),
                                 ),
                             ) {
