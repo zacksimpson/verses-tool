@@ -80,6 +80,6 @@ If any of my tools have been useful to you, I'd love to hear from you! Feel free
 
 ## Credits
 
-* [The Light Phone](https://www.thelightphone.com) – for building a phone worth making apps for
+* [The Light Phone](https://www.thelightphone.com) – for building a phone worth making tools for
 * [Crossway](https://www.crossway.org) – for the ESV® Bible text, made available via the [ESV API](https://api.esv.org)
 * [YouVersion Platform](https://platform.youversion.com) – for the NIV® and NASB® Bible translations, made available via the [YouVersion API](https://developers.youversion.com/api/data-exchange)
