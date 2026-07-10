@@ -61,7 +61,10 @@ class TranslationPickerScreen(sealedActivity: SealedLightActivity) : SimpleLight
                         modifier = Modifier.padding(bottom = 1f.gridUnitsAsDp()),
                     )
 
-                    Translation.entries.forEach { translation ->
+                    // KJV is the default for the (not-yet-built) verse lookup feature, not
+                    // a choice for the daily verse — excluded here, not from Translation
+                    // itself, so CopyrightInfoScreen still lists it once it's reachable.
+                    Translation.entries.filter { it != Translation.KJV }.forEach { translation ->
                         TranslationRow(
                             translation = translation,
                             isSelected = translation == selected,

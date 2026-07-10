@@ -22,6 +22,14 @@ sealed interface TranslationSource {
             "publisher's terms for free, non-commercial use, once per day and cached on-device the " +
             "same way as above."
     }
+
+    /** Public domain text (bible-api.com) — unlike Esv/YouVersion, has no rate limit or
+     *  storage restriction of any kind, so it's the only source that supports fetching a
+     *  whole chapter rather than one passage at a time (see VerseFetcher.fetchChapter). */
+    data object PublicDomain : TranslationSource {
+        override val usageNote = "Verse text is fetched from bible-api.com, a free service built on " +
+            "public domain Bible translations. No usage restrictions apply."
+    }
 }
 
 enum class Translation(
@@ -59,6 +67,15 @@ enum class Translation(
             "Foundation. Used by permission. All rights reserved. www.Lockman.org",
         trademarkNotice = "\"NASB\" and \"New American Standard Bible\" are registered trademarks of " +
             "The Lockman Foundation.",
+    ),
+    KJV(
+        abbreviation = "KJV",
+        displayName = "King James Version",
+        source = TranslationSource.PublicDomain,
+        copyrightNotice = "The King James Version (Authorized Version) of the Bible is in the " +
+            "public domain in the United States.",
+        trademarkNotice = "The King James Version has no trademark or copyright holder; it is " +
+            "freely available for any use.",
     );
 
     companion object {

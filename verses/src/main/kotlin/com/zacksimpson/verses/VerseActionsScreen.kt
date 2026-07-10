@@ -37,12 +37,12 @@ class VerseActionsViewModel(
 ) : LightViewModel<Unit>() {
     val notes = repo.notes.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    fun addNote(date: String, reference: String, text: String) {
+    fun addNote(date: String, reference: String, text: String, translation: Translation) {
         // NonCancellable: the caller calls goBack() right after this, which tears down
         // this ViewModel's scope — without this the write can get cancelled mid-flight.
         viewModelScope.launch {
             withContext(NonCancellable) {
-                repo.addNote(date, reference, text)
+                repo.addNote(date, reference, text, translation)
             }
         }
     }
@@ -97,7 +97,7 @@ class VerseActionsScreen(
                             navigateTo(
                                 screenFactory = { TextEditorScreen(it, TextEditorRequest("Add Notes")) },
                                 resultCallback = { text ->
-                                    viewModel.addNote(date, reference, text)
+                                    viewModel.addNote(date, reference, text, translation)
                                     goBack(Unit)
                                 },
                             )

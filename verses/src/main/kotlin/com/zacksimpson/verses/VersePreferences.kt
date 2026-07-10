@@ -12,6 +12,10 @@ internal object VersePreferences {
     // flash under the new translation's label.
     val CACHED_TRANSLATION = stringPreferencesKey("cached_translation")
     val SELECTED_TRANSLATION = stringPreferencesKey("selected_translation")
+    // Separate from SELECTED_TRANSLATION, which is exclusively about the daily verse —
+    // this is which translation the (not-yet-built) lookup feature fetches in, defaulting
+    // to KJV rather than ESV since lookup is meant to default to public domain.
+    val LOOKUP_TRANSLATION = stringPreferencesKey("lookup_translation")
 }
 
 internal fun Preferences.selectedTranslation(): Translation =
@@ -19,3 +23,8 @@ internal fun Preferences.selectedTranslation(): Translation =
 
 internal fun Preferences.cachedTranslation(): Translation =
     Translation.fromNameOrDefault(this[VersePreferences.CACHED_TRANSLATION])
+
+internal fun Preferences.lookupTranslation(): Translation =
+    this[VersePreferences.LOOKUP_TRANSLATION]
+        ?.let { stored -> Translation.entries.firstOrNull { it.name == stored } }
+        ?: Translation.KJV
