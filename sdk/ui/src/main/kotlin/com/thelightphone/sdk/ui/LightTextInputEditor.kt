@@ -3,7 +3,7 @@ package com.thelightphone.sdk.ui
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
-import androidx.compose.foundation.gestures.drag
+import androidx.compose.foundation.gestures.waitForUpOrCancellation
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.BasicText
@@ -136,22 +136,23 @@ fun LightTextInputEditor(
                     .onSizeChanged { viewportHeightPx = it.height }
                     .verticalScroll(scrollState)
                     .pointerInput(Unit) {
+                        // Only a plain tap moves the cursor — no drag-to-fine-tune-position,
+                        // since watching for our own drag here would race the enclosing
+                        // verticalScroll's gesture detector for the same touch events (both
+                        // sides trying to claim touch-slop crossing independently is fragile
+                        // and was making the text area unreliable to scroll by touch).
+                        // waitForUpOrCancellation returns null if verticalScroll claims the
+                        // gesture as a scroll first, so this naturally leaves the cursor
+                        // untouched during a scroll and only moves it for a genuine tap.
                         awaitEachGesture {
-                            val down = awaitFirstDown(requireUnconsumed = false)
-                            textLayout?.let { layout ->
-                                state.edit {
-                                    selection =
-                                        TextRange(layout.getOffsetForPosition(down.position))
-                                }
-                            }
-                            drag(down.id) { change ->
+                            awaitFirstDown(requireUnconsumed = false)
+                            val up = waitForUpOrCancellation()
+                            if (up != null) {
                                 textLayout?.let { layout ->
                                     state.edit {
-                                        selection =
-                                            TextRange(layout.getOffsetForPosition(change.position))
+                                        selection = TextRange(layout.getOffsetForPosition(up.position))
                                     }
                                 }
-                                change.consume()
                             }
                         }
                     },
