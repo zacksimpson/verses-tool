@@ -41,9 +41,10 @@ class TextEditorScreen(
                     // A fresh instance per push, so it keys each editor uniquely — see
                     // reminders-tool's TextEditorScreen for why a fixed key would collide.
                     editorKey = this@TextEditorScreen,
-                    // Notes read more naturally at body size than the SDK's default
-                    // Heading-sized input text.
-                    inputTextVariant = LightTextVariant.Copy,
+                    // Smaller than the SDK's default Heading size (and smaller than Copy,
+                    // used elsewhere for notes) so more of a long note stays visible above
+                    // the embedded keyboard.
+                    inputTextVariant = LightTextVariant.Paragraph,
                 )
             }
         }
