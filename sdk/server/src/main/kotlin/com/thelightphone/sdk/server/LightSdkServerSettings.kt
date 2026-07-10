@@ -37,11 +37,11 @@ class LightSdkServerSettings(context: Context) {
 
     var clientFilterLevel: ClientFilterLevel
         get() = preferences
-            .getInt(CLIENT_FILTER_LEVEL, ClientFilterLevel.ExcludeAllApks.ordinal)
+            .getInt(CLIENT_FILTER_LEVEL, LightSdkServer.defaultClientFilterLevel.ordinal)
             .let { index ->
                 ClientFilterLevel.entries.getOrElse(index) {
                     Log.e(TAG, "Invalid value for client filter level: $it")
-                    ClientFilterLevel.ExcludeAllApks
+                    LightSdkServer.defaultClientFilterLevel
                 }
             }
         set(value) {
