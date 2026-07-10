@@ -5,9 +5,11 @@ import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.drag
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.foundation.text.input.rememberTextFieldState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -19,6 +21,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.style.TextOverflow
@@ -106,6 +109,8 @@ fun LightTextInputEditor(
     val colors = LightThemeTokens.colors
     val inputStyle = lightInputTextStyle(inputTextVariant)
     var textLayout by remember { mutableStateOf<TextLayoutResult?>(null) }
+    val scrollState = rememberScrollState()
+    var viewportHeightPx by remember { mutableStateOf(0) }
 
     Surface {
         Column(modifier = modifier.fillMaxSize()) {
@@ -127,6 +132,8 @@ fun LightTextInputEditor(
                     .weight(1f)
                     .fillMaxWidth()
                     .padding(horizontal = 2f.gridUnitsAsDp())
+                    .onSizeChanged { viewportHeightPx = it.height }
+                    .verticalScroll(scrollState)
                     .pointerInput(Unit) {
                         awaitEachGesture {
                             val down = awaitFirstDown(requireUnconsumed = false)
@@ -168,6 +175,24 @@ fun LightTextInputEditor(
                             .height(with(LocalDensity.current) { rect.height.toDp() })
                             .background(colors.content),
                     )
+                }
+            }
+
+            // Keeps the cursor visible above the embedded keyboard as text grows past one
+            // screen: re-runs on every keystroke/selection change (not on manual scrolling,
+            // since neither textLayout nor state.selection change then) and nudges the
+            // scroll position only far enough to bring the cursor's rect back into the
+            // Box's last-measured viewport height.
+            LaunchedEffect(textLayout, state.selection) {
+                val layout = textLayout ?: return@LaunchedEffect
+                if (viewportHeightPx == 0) return@LaunchedEffect
+                val cursorPos = state.selection.min.coerceIn(0, layout.layoutInput.text.length)
+                val rect = layout.getCursorRect(cursorPos)
+                when {
+                    rect.bottom > scrollState.value + viewportHeightPx ->
+                        scrollState.scrollTo((rect.bottom - viewportHeightPx).toInt().coerceAtLeast(0))
+                    rect.top < scrollState.value ->
+                        scrollState.scrollTo(rect.top.toInt().coerceAtLeast(0))
                 }
             }
 
