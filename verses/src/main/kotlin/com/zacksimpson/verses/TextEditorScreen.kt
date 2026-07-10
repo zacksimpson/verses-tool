@@ -8,7 +8,6 @@ import com.thelightphone.sdk.SealedLightActivity
 import com.thelightphone.sdk.SimpleLightScreen
 import com.thelightphone.sdk.rememberKeyboardOptions
 import com.thelightphone.sdk.ui.LightTextInputEditor
-import com.thelightphone.sdk.ui.LightTextVariant
 import com.thelightphone.sdk.ui.LightTheme
 import com.thelightphone.sdk.ui.LightThemeController
 
@@ -41,9 +40,6 @@ class TextEditorScreen(
                     // A fresh instance per push, so it keys each editor uniquely — see
                     // reminders-tool's TextEditorScreen for why a fixed key would collide.
                     editorKey = this@TextEditorScreen,
-                    // Notes read more naturally at body size than the SDK's default
-                    // Heading-sized input text.
-                    inputTextVariant = LightTextVariant.Copy,
                 )
             }
         }

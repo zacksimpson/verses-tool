@@ -24,7 +24,6 @@ import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -37,6 +36,8 @@ import com.thelightphone.sdk.ui.keyboard.TextInputKeyboardCallback
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
+private const val INPUT_UNDERLINE_THICKNESS_PX = 3f
+private const val INPUT_UNDERLINE_GAP_GRID_UNITS = 0.5f
 
 @Composable
 fun LightTextInputEditor(
@@ -51,7 +52,6 @@ fun LightTextInputEditor(
     showBackButton: Boolean = true,
     singleLine: Boolean = false,
     editorKey: Any = title,
-    inputTextVariant: LightTextVariant = LightTextVariant.Heading,
 ) {
     val currentOnSubmit by rememberUpdatedState(onSubmit)
     val keyboardCallback = remember(state, singleLine) {
@@ -78,7 +78,6 @@ fun LightTextInputEditor(
         submitIcon,
         showBackButton,
         singleLine,
-        inputTextVariant,
     )
 }
 
@@ -101,10 +100,9 @@ fun LightTextInputEditor(
     submitIcon: LightIconConfiguration? = null,
     showBackButton: Boolean = true,
     singleLine: Boolean = false,
-    inputTextVariant: LightTextVariant = LightTextVariant.Heading,
 ) {
     val colors = LightThemeTokens.colors
-    val inputStyle = lightInputTextStyle(inputTextVariant)
+    val inputStyle = lightInputTextStyle()
     var textLayout by remember { mutableStateOf<TextLayoutResult?>(null) }
 
     Surface {
@@ -149,15 +147,28 @@ fun LightTextInputEditor(
                     },
                 contentAlignment = Alignment.TopStart,
             ) {
-                BasicText(
-                    text = state.text.toString(),
-                    style = inputStyle,
-                    onTextLayout = { textLayout = it },
-                    maxLines = if (singleLine) 1 else Int.MAX_VALUE,
-                    softWrap = !singleLine,
-                    overflow = if (singleLine) TextOverflow.StartEllipsis else TextOverflow.Clip,
-                    modifier = Modifier.fillMaxWidth(),
-                )
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    BasicText(
+                        text = state.text.toString(),
+                        style = inputStyle,
+                        onTextLayout = { textLayout = it },
+                        maxLines = if (singleLine) 1 else Int.MAX_VALUE,
+                        softWrap = !singleLine,
+                        overflow = if (singleLine) TextOverflow.StartEllipsis else TextOverflow.Clip,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    Spacer(
+                        modifier = Modifier.height(
+                            INPUT_UNDERLINE_GAP_GRID_UNITS.gridUnitsAsDp(),
+                        ),
+                    )
+                    Spacer(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(INPUT_UNDERLINE_THICKNESS_PX.designVerticalPxToDp())
+                            .background(colors.content),
+                    )
+                }
                 textLayout?.let { layout ->
                     val cursorPos = state.selection.min.coerceIn(0, layout.layoutInput.text.length)
                     val rect = layout.getCursorRect(cursorPos)
@@ -215,12 +226,14 @@ private fun factory(
     }
 
 @Composable
-private fun lightInputTextStyle(variant: LightTextVariant): TextStyle {
+private fun lightInputTextStyle(): TextStyle {
     val colors = LightThemeTokens.colors
-    return variantStyle(variant).copy(
-        color = colors.content,
-        textDecoration = TextDecoration.Underline,
-    )
+    val t = LightThemeTokens.typography
+    return t.heading
+        .copy(
+            color = colors.content,
+        )
+        .scaledForScreenHeight()
 }
 
 @Preview(widthDp = 1080 / 3, heightDp = 1240 / 3, showBackground = true)

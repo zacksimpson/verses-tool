@@ -106,6 +106,8 @@ object LightSdkServer {
             .filterAllowedTools(this)
     }
 
+    var defaultClientFilterLevel: ClientFilterLevel = ClientFilterLevel.AllowLightApprovedApks
+
     /**
      * return the POST endpoint that the calling tool's application server should use to
      * get UnifiedPush through Light's server, down to LightOS/emulator, then over to Tool
