@@ -35,8 +35,15 @@ class VersesViewModel(
     val uiState: StateFlow<VerseUiState> = _uiState.asStateFlow()
 
     init {
+        // Only paints the cache immediately, if there is one — deciding whether it's
+        // stale and needs a re-fetch is onScreenShow's job below. onScreenShow always
+        // fires right after this ViewModel is constructed (the SDK evaluates the lazy
+        // `viewModel` property and immediately calls onScreenShow on it), so having both
+        // this init block and onScreenShow each independently call refreshIfStale used to
+        // fire two concurrent fetches for the same verse on a cold start with a stale
+        // cache — one call site owning "check staleness and fetch" avoids that.
         viewModelScope.launch(Dispatchers.IO) {
-            loadStoredState()
+            showCachedStateIfAvailable()
         }
     }
 
@@ -47,7 +54,7 @@ class VersesViewModel(
         }
     }
 
-    private suspend fun loadStoredState() {
+    private suspend fun showCachedStateIfAvailable() {
         val prefs = dataStore.data.first()
         val translation = prefs.selectedTranslation()
         val cachedRef = prefs[VersePreferences.CACHED_REFERENCE]
@@ -55,11 +62,10 @@ class VersesViewModel(
 
         // Only show the cache immediately if it matches the current translation — a
         // mismatch (translation was switched since the last cache write) gets resolved
-        // by refreshIfStale below instead of flashing the old translation's text.
+        // by onScreenShow's refreshIfStale instead of flashing the old translation's text.
         if (cachedRef != null && cachedText != null && prefs.cachedTranslation() == translation) {
             setState(VerseUiState.Loaded(reference = cachedRef, text = cachedText, translation = translation))
         }
-        refreshIfStale(prefs)
     }
 
     private suspend fun refreshIfStale(prefs: Preferences) {

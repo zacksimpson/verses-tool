@@ -94,4 +94,20 @@ internal object UsfmReference {
      *  name and chapter number rather than a full "Book Chapter:Verse" reference. */
     fun bookCode(bookName: String): String =
         BOOK_CODES[bookName] ?: error("Unknown book name '$bookName'")
+
+    /** Splits a USFM passage id (from [toPassageId]) into its book/chapter/verse-range
+     *  parts — e.g. "JHN.3.16" or "JHN.3.16-18". Generic parsing, not tied to any one
+     *  backend's response format, so any client can use it to know a range's bounds. */
+    fun parseRange(passageId: String): PassageRange {
+        val (bookCode, chapterPart, versePart) = passageId.split(".")
+        val (start, end) = if ("-" in versePart) {
+            val (from, to) = versePart.split("-")
+            from.toInt() to to.toInt()
+        } else {
+            versePart.toInt().let { it to it }
+        }
+        return PassageRange(bookCode, chapterPart.toInt(), start, end)
+    }
 }
+
+internal data class PassageRange(val bookCode: String, val chapter: Int, val startVerse: Int, val endVerse: Int)
