@@ -10,12 +10,6 @@ class HelloAoApiTest {
     private val json = Json { ignoreUnknownKeys = true }
 
     @Test
-    fun `parses passage ids into a verse range`() {
-        assertEquals(PassageRange("JHN", 3, 16, 16), HelloAoParsing.parsePassageId("JHN.3.16"))
-        assertEquals(PassageRange("EPH", 2, 8, 9), HelloAoParsing.parsePassageId("EPH.2.8-9"))
-    }
-
-    @Test
     fun `flattens a chapter with headings, line breaks, and plain verse text`() {
         val body = """
             {"chapter":{"number":3,"content":[
@@ -39,7 +33,7 @@ class HelloAoApiTest {
     }
 
     @Test
-    fun `flattens poetry lines and skips footnote-only markers`() {
+    fun `keeps poetry lines separate and indents the second line`() {
         val body = """
             {"chapter":{"number":23,"content":[
                 {"type":"heading","content":["The LORD Is My Shepherd"]},
@@ -56,6 +50,31 @@ class HelloAoApiTest {
         val verses = HelloAoParsing.versesFromContent(parsed.chapter.content)
 
         assertEquals(1, verses.size)
-        assertEquals(1 to "The LORD is my shepherd; I shall not want.", verses[0])
+        assertEquals(1, verses[0].first)
+        assertEquals(
+            "The LORD is my shepherd;\n${POETIC_INDENT_UNIT}I shall not want.",
+            verses[0].second,
+        )
+    }
+
+    @Test
+    fun `a trailing lineBreak after a poetry line adds no phantom blank line`() {
+        val body = """
+            {"chapter":{"number":23,"content":[
+                {"type":"verse","number":4,"content":[
+                    {"text":"Yea, though I walk through the valley of the shadow of death, I will fear no evil.","poem":1},
+                    {"lineBreak":true}
+                ]}
+            ]}}
+        """.trimIndent()
+
+        val parsed = json.decodeFromString<HelloAoChapterResponse>(body)
+        val verses = HelloAoParsing.versesFromContent(parsed.chapter.content)
+
+        assertEquals(1, verses.size)
+        assertEquals(
+            4 to "Yea, though I walk through the valley of the shadow of death, I will fear no evil.",
+            verses[0],
+        )
     }
 }

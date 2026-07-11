@@ -48,7 +48,7 @@ class VerseActionsViewModel(
     }
 }
 
-/** Long-press action sheet for a verse — currently just "Add Notes" — styled to match
+/** Long-press action sheet for a verse — Copy, Memorize, and Add Notes — styled to match
  *  reminders-tool's ListActionsScreen. */
 class VerseActionsScreen(
     sealedActivity: SealedLightActivity,
@@ -89,6 +89,18 @@ class VerseActionsScreen(
                                 AnnotatedString("$verseText\n\n$reference (${translation.abbreviation})"),
                             )
                             goBack(Unit)
+                        },
+                    )
+                    ActionRow(
+                        text = "Memorize",
+                        onClick = {
+                            navigateTo(
+                                screenFactory = { MemorizeScreen(it, reference, verseText, translation) },
+                                // Ignores the result — just closes this sheet once Memorize is
+                                // backed out of, so returning lands on the verse itself rather
+                                // than leaving the sheet on the stack underneath.
+                                resultCallback = { goBack(Unit) },
+                            )
                         },
                     )
                     ActionRow(

@@ -20,11 +20,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import com.thelightphone.sdk.SealedLightActivity
 import com.thelightphone.sdk.SimpleLightScreen
 import com.thelightphone.sdk.ui.LightBarButton
 import com.thelightphone.sdk.ui.LightIcons
+import com.thelightphone.sdk.ui.LightScrollBarPosition
+import com.thelightphone.sdk.ui.LightScrollView
 import com.thelightphone.sdk.ui.LightText
 import com.thelightphone.sdk.ui.LightTextVariant
 import com.thelightphone.sdk.ui.LightTheme
@@ -35,14 +38,26 @@ import com.thelightphone.sdk.ui.LightTopBarCenter
 import com.thelightphone.sdk.ui.gridUnitsAsDp
 import kotlinx.coroutines.launch
 
-class TranslationPickerScreen(sealedActivity: SealedLightActivity) : SimpleLightScreen<Unit>(sealedActivity) {
+/** Shared by Settings' "Translation" (daily verse, [VersePreferences.SELECTED_TRANSLATION],
+ *  every translation) and "Fallback Translation" (verse lookup default,
+ *  [VersePreferences.LOOKUP_TRANSLATION], public domain translations only — see
+ *  [VersePreferences.lookupTranslation]) rows — same selection UI, differing only in which
+ *  preference they read/write, what the top bar calls itself, and which translations are
+ *  offered. */
+class TranslationPickerScreen(
+    sealedActivity: SealedLightActivity,
+    private val title: String,
+    private val preferenceKey: Preferences.Key<String>,
+    private val currentSelection: (Preferences) -> Translation,
+    private val options: List<Translation> = Translation.entries,
+) : SimpleLightScreen<Unit>(sealedActivity) {
 
     @Composable
     override fun Content() {
         val themeColors by LightThemeController.colors.collectAsState()
         val scope = rememberCoroutineScope()
         val prefs by lightContext.dataStore.data.collectAsState(initial = null)
-        val selected = prefs?.selectedTranslation() ?: Translation.DEFAULT
+        val selected = prefs?.let(currentSelection) ?: Translation.DEFAULT
         // Guards against a fast double-tap (or tapping two rows before the first
         // selection's coroutine finishes) launching two goBack() calls — the second one
         // would pop whatever screen is now on top, not just be a no-op.
@@ -57,30 +72,35 @@ class TranslationPickerScreen(sealedActivity: SealedLightActivity) : SimpleLight
                 ) {
                     LightTopBar(
                         leftButton = LightBarButton.LightIcon(LightIcons.BACK, onClick = { goBack(Unit) }),
-                        center = LightTopBarCenter.Text("Translation"),
+                        center = LightTopBarCenter.Text(title),
                         modifier = Modifier.padding(bottom = 1f.gridUnitsAsDp()),
                     )
 
-                    // Public domain translations (KJV, BSB) are fallbacks for the
-                    // (not-yet-built) verse lookup feature, not a choice for the daily
-                    // verse — excluded here, not from Translation itself, so
-                    // CopyrightInfoScreen still lists them once reachable.
-                    Translation.entries.filter { it.source !is TranslationSource.PublicDomain }.forEach { translation ->
-                        TranslationRow(
-                            translation = translation,
-                            isSelected = translation == selected,
-                            onClick = {
-                                if (!isSelecting) {
-                                    isSelecting = true
-                                    scope.launch {
-                                        lightContext.dataStore.edit { p ->
-                                            p[VersePreferences.SELECTED_TRANSLATION] = translation.name
-                                        }
-                                        goBack(Unit)
-                                    }
+                    Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
+                        LightScrollView(
+                            modifier = Modifier.fillMaxSize(),
+                            scrollBarPosition = LightScrollBarPosition.Inside,
+                        ) {
+                            Column {
+                                options.forEach { translation ->
+                                    TranslationRow(
+                                        translation = translation,
+                                        isSelected = translation == selected,
+                                        onClick = {
+                                            if (!isSelecting) {
+                                                isSelecting = true
+                                                scope.launch {
+                                                    lightContext.dataStore.edit { p ->
+                                                        p[preferenceKey] = translation.name
+                                                    }
+                                                    goBack(Unit)
+                                                }
+                                            }
+                                        },
+                                    )
                                 }
-                            },
-                        )
+                            }
+                        }
                     }
                 }
             }

@@ -13,8 +13,8 @@ internal object VersePreferences {
     val CACHED_TRANSLATION = stringPreferencesKey("cached_translation")
     val SELECTED_TRANSLATION = stringPreferencesKey("selected_translation")
     // Separate from SELECTED_TRANSLATION, which is exclusively about the daily verse —
-    // this is which translation the (not-yet-built) lookup feature fetches in, defaulting
-    // to KJV rather than ESV since lookup is meant to default to public domain.
+    // this is which translation the verse lookup feature fetches in, defaulting to KJV
+    // (any translation is a valid choice here, same list as SELECTED_TRANSLATION's picker).
     val LOOKUP_TRANSLATION = stringPreferencesKey("lookup_translation")
 }
 

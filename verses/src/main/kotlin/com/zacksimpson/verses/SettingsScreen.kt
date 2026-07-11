@@ -44,7 +44,33 @@ class SettingsScreen(sealedActivity: SealedLightActivity) : SimpleLightScreen<Un
 
                     SettingsLinkRow(
                         label = "Translation",
-                        onClick = { navigateTo(screenFactory = { TranslationPickerScreen(it) }) },
+                        onClick = {
+                            navigateTo(
+                                screenFactory = {
+                                    TranslationPickerScreen(
+                                        it,
+                                        title = "Translation",
+                                        preferenceKey = VersePreferences.SELECTED_TRANSLATION,
+                                        currentSelection = { prefs -> prefs.selectedTranslation() },
+                                    )
+                                },
+                            )
+                        },
+                    )
+                    SettingsLinkRow(
+                        label = "Fallback Translation",
+                        onClick = {
+                            navigateTo(
+                                screenFactory = {
+                                    TranslationPickerScreen(
+                                        it,
+                                        title = "Fallback Translation",
+                                        preferenceKey = VersePreferences.LOOKUP_TRANSLATION,
+                                        currentSelection = { prefs -> prefs.lookupTranslation() },
+                                    )
+                                },
+                            )
+                        },
                     )
                     SettingsLinkRow(
                         label = "View All Notes",

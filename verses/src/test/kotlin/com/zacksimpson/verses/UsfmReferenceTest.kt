@@ -32,4 +32,10 @@ class UsfmReferenceTest {
             UsfmReference.toPassageId(reference)
         }
     }
+
+    @Test
+    fun `parses passage ids into a verse range`() {
+        assertEquals(PassageRange("JHN", 3, 16, 16), UsfmReference.parseRange("JHN.3.16"))
+        assertEquals(PassageRange("EPH", 2, 8, 9), UsfmReference.parseRange("EPH.2.8-9"))
+    }
 }

@@ -25,19 +25,22 @@ sealed interface TranslationSource {
 
     /** Public domain text — unlike Esv/YouVersion, has no rate limit or storage restriction
      *  of any kind, so it's the only source that supports fetching a whole chapter rather
-     *  than one passage at a time (see VerseFetcher.fetchChapter). Different public domain
-     *  translations come from different free APIs, hence [provider]. */
+     *  than one passage at a time (see VerseFetcher.fetchChapter). Both public domain
+     *  translations come from bible.helloao.org, just under different translation ids —
+     *  see [PublicDomainProvider.translationId]. */
     data class PublicDomain(val provider: PublicDomainProvider) : TranslationSource {
         override val usageNote = provider.usageNote
     }
 }
 
-enum class PublicDomainProvider(val usageNote: String) {
-    BIBLE_API_COM(
-        usageNote = "Verse text is fetched from bible-api.com, a free service built on " +
-            "public domain Bible translations. No usage restrictions apply.",
+enum class PublicDomainProvider(val translationId: String, val usageNote: String) {
+    KJV(
+        translationId = "eng_kjv",
+        usageNote = "Verse text is fetched from bible.helloao.org, a free service hosting " +
+            "the King James Version. No usage restrictions apply.",
     ),
-    HELLO_AO(
+    BSB(
+        translationId = "BSB",
         usageNote = "Verse text is fetched from bible.helloao.org, a free service hosting " +
             "the Berean Standard Bible. No usage restrictions apply.",
     ),
@@ -82,7 +85,7 @@ enum class Translation(
     KJV(
         abbreviation = "KJV",
         displayName = "King James Version",
-        source = TranslationSource.PublicDomain(PublicDomainProvider.BIBLE_API_COM),
+        source = TranslationSource.PublicDomain(PublicDomainProvider.KJV),
         copyrightNotice = "The King James Version (Authorized Version) of the Bible is in the " +
             "public domain in the United States.",
         trademarkNotice = "The King James Version has no trademark or copyright holder; it is " +
@@ -91,7 +94,7 @@ enum class Translation(
     BSB(
         abbreviation = "BSB",
         displayName = "Berean Standard Bible",
-        source = TranslationSource.PublicDomain(PublicDomainProvider.HELLO_AO),
+        source = TranslationSource.PublicDomain(PublicDomainProvider.BSB),
         copyrightNotice = "The Berean Standard Bible was dedicated to the public domain by its " +
             "publisher, Bible Hub, on April 30, 2023. All uses are freely permitted.",
         trademarkNotice = "The Berean Standard Bible has no trademark or copyright holder; it is " +
