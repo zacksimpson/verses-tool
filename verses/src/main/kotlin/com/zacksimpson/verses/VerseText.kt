@@ -17,11 +17,19 @@ import com.thelightphone.sdk.ui.gridUnitsAsDp
 val VERSE_WORD_HORIZONTAL_GAP = 4.dp
 val VERSE_WORD_VERTICAL_GAP = 4.dp
 
-/** Two literal spaces per poetic indent level — the convention HelloAoParsing encodes a
- *  verse's poetic line breaks and indentation with (see HelloAoParsing.linesFrom), since
+/** Marks the start of a poetic line — a tab never otherwise appears in verse text, and
+ *  unlike relying on indentation alone, this stays present even for an unindented ("poem":
+ *  1) poetic line, so a verse that's a single poetic line at indent level 0 is still
+ *  distinguishable from plain prose (see [isPoeticText]). HelloAoParsing prefixes every
+ *  poem-tagged line with this (see HelloAoParsing.linesFrom); [linesFromVerseText] strips
+ *  it back off. */
+internal const val POETIC_LINE_MARKER = "\t"
+
+/** Two literal spaces per poetic indent level, following [POETIC_LINE_MARKER] — the
+ *  convention HelloAoParsing encodes a verse's poetic indentation with, since
  *  fetchVerseText/fetchVerses still hand back a plain String everywhere else in the app.
  *  [linesFromVerseText] below reads it back out. Sources with no such structure (ESV,
- *  YouVersion) just come back as a single unindented line, same as before this existed. */
+ *  YouVersion) just come back as a single unmarked line, same as before this existed. */
 internal const val POETIC_INDENT_UNIT = "  "
 
 /** Grid units of leading indent per poetic level — same "poem":1/2/3 numbering the source
@@ -34,7 +42,7 @@ internal data class VerseLine(val indentLevel: Int, val text: String)
 
 internal fun linesFromVerseText(text: String): List<VerseLine> =
     text.split("\n").map { rawLine ->
-        var remaining = rawLine
+        var remaining = rawLine.removePrefix(POETIC_LINE_MARKER)
         var level = 0
         while (remaining.startsWith(POETIC_INDENT_UNIT)) {
             remaining = remaining.removePrefix(POETIC_INDENT_UNIT)
@@ -43,10 +51,10 @@ internal fun linesFromVerseText(text: String): List<VerseLine> =
         VerseLine(indentLevel = level, text = remaining)
     }
 
-/** Whether a single verse's text carries HelloAoParsing's poetic structure (more than one
- *  line, or a first line that's itself indented) — a plain prose verse always collapses
- *  to one unindented line, so this only ever fires for public domain sources' poetry. */
-internal fun isPoeticText(text: String): Boolean = "\n" in text || text.startsWith(POETIC_INDENT_UNIT)
+/** Whether a single verse's text carries HelloAoParsing's poetic structure — a plain prose
+ *  verse never contains [POETIC_LINE_MARKER], so this only ever fires for public domain
+ *  sources' poetry, including a verse that's just one poetic line at indent level 0. */
+internal fun isPoeticText(text: String): Boolean = POETIC_LINE_MARKER in text
 
 /** Joins multiple verses' texts into one combined string for callers that only need flat
  *  text (fetchVerseText's multi-verse ranges) — a hard line break goes between two verses

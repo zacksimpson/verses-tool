@@ -38,12 +38,11 @@ import com.thelightphone.sdk.ui.LightTopBarCenter
 import com.thelightphone.sdk.ui.gridUnitsAsDp
 import kotlinx.coroutines.launch
 
-/** Shared by Settings' "Translation" (daily verse, [VersePreferences.SELECTED_TRANSLATION],
- *  every translation) and "Fallback Translation" (verse lookup default,
- *  [VersePreferences.LOOKUP_TRANSLATION], public domain translations only — see
- *  [VersePreferences.lookupTranslation]) rows — same selection UI, differing only in which
- *  preference they read/write, what the top bar calls itself, and which translations are
- *  offered. */
+/** Shared by Settings' "Translation" (daily verse, [VersePreferences.SELECTED_TRANSLATION])
+ *  and "Fallback Translation" (verse lookup default, [VersePreferences.LOOKUP_TRANSLATION])
+ *  rows — same selection UI, differing only in which preference they read/write and what
+ *  the top bar calls itself. Both currently offer every translation ([options] defaults
+ *  to all of them), but a caller can pass a narrower list. */
 class TranslationPickerScreen(
     sealedActivity: SealedLightActivity,
     private val title: String,
@@ -57,7 +56,12 @@ class TranslationPickerScreen(
         val themeColors by LightThemeController.colors.collectAsState()
         val scope = rememberCoroutineScope()
         val prefs by lightContext.dataStore.data.collectAsState(initial = null)
-        val selected = prefs?.let(currentSelection) ?: Translation.DEFAULT
+        // Null (nothing highlighted) rather than falling back to some guessed default while
+        // prefs is still loading — a fallback here would need to match whatever currentSelection
+        // would itself resolve to for an empty/missing preference, which differs per caller
+        // (ESV for the daily-verse picker, KJV for the lookup-fallback picker) and isn't
+        // knowable generically from here.
+        val selected = prefs?.let(currentSelection)
         // Guards against a fast double-tap (or tapping two rows before the first
         // selection's coroutine finishes) launching two goBack() calls — the second one
         // would pop whatever screen is now on top, not just be a no-op.

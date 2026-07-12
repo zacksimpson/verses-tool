@@ -86,7 +86,7 @@ internal object UsfmReference {
         val match = REFERENCE_PATTERN.matchEntire(reference)
             ?: error("Reference '$reference' doesn't match the expected 'Book Chapter:Verse[-Verse]' format")
         val (bookName, chapter, verse, endVerse) = match.destructured
-        val code = bookCode(bookName)
+        val code = BOOK_CODES[bookName] ?: error("Unknown book name '$bookName' in reference '$reference'")
         return if (endVerse.isEmpty()) "$code.$chapter.$verse" else "$code.$chapter.$verse-$endVerse"
     }
 

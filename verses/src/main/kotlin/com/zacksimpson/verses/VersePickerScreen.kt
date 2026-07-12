@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -81,6 +82,12 @@ class VersePickerScreen(
     override fun Content() {
         val themeColors by LightThemeController.colors.collectAsState()
         val scope = rememberCoroutineScope()
+        // Scoped to the screen (not per-tap) so picking multiple verses from this chapter
+        // reuses the same HTTP client instead of building and tearing one down every time.
+        val fetcher = remember { VerseFetcher() }
+        DisposableEffect(Unit) {
+            onDispose { fetcher.close() }
+        }
         val verseCount = remember(book, chapter) {
             BibleBooks.all.first { it.name == book }.versesPerChapter[chapter - 1]
         }
@@ -94,6 +101,10 @@ class VersePickerScreen(
             scope.launch {
                 val prefs = lightContext.dataStore.data.first()
                 val translation = prefs.lookupTranslation()
+                if (!fetcher.isConfigured(translation)) {
+                    resolveState = ResolveState.Error(fetcher.missingKeyMessage(translation))
+                    return@launch
+                }
                 val rateLimiter = LookupRateLimiter(lightContext.dataStore)
                 if (!rateLimiter.shouldAllowLookup(translation)) {
                     resolveState = ResolveState.Error(
@@ -102,24 +113,19 @@ class VersePickerScreen(
                     )
                     return@launch
                 }
-                val fetcher = VerseFetcher()
-                try {
-                    val result = fetcher.fetchVerses(translation, reference)
-                    result.fold(
-                        onSuccess = { verses ->
-                            rateLimiter.recordLookup(translation)
-                            navigateTo(
-                                screenFactory = { PassageScreen(it, reference, verses, translation) },
-                            )
-                            resolveState = ResolveState.Idle
-                        },
-                        onFailure = {
-                            resolveState = ResolveState.Error("Couldn't load $reference. Try again shortly.")
-                        },
-                    )
-                } finally {
-                    fetcher.close()
-                }
+                val result = fetcher.fetchVerses(translation, reference)
+                result.fold(
+                    onSuccess = { verses ->
+                        rateLimiter.recordLookup(translation)
+                        navigateTo(
+                            screenFactory = { PassageScreen(it, reference, verses, translation) },
+                        )
+                        resolveState = ResolveState.Idle
+                    },
+                    onFailure = {
+                        resolveState = ResolveState.Error("Couldn't load $reference. Try again shortly.")
+                    },
+                )
             }
         }
 
@@ -145,9 +151,11 @@ class VersePickerScreen(
                             )
 
                             is ResolveState.Error -> LightText(
-                                text = resolving.message,
+                                text = "${resolving.message}\n\nTap to try again.",
                                 variant = LightTextVariant.Copy,
-                                modifier = Modifier.padding(horizontal = 1.5f.gridUnitsAsDp()),
+                                modifier = Modifier
+                                    .padding(horizontal = 1.5f.gridUnitsAsDp())
+                                    .clickable { resolveState = ResolveState.Idle },
                             )
 
                             is ResolveState.Idle -> {

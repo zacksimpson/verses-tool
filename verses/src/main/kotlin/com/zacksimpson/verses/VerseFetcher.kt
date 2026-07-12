@@ -61,7 +61,7 @@ internal class VerseFetcher {
     suspend fun fetchVerses(translation: Translation, reference: String): Result<List<Pair<Int, String>>> =
         when (val source = translation.source) {
             is TranslationSource.PublicDomain -> helloAoApi(source.provider).fetchVerses(reference)
-            is TranslationSource.Esv, is TranslationSource.YouVersion -> fetchVerseText(translation, reference).map { text ->
+            is TranslationSource.Esv, is TranslationSource.YouVersion -> fetchVerseText(translation, reference).mapCatching { text ->
                 val startVerse = UsfmReference.parseRange(UsfmReference.toPassageId(reference)).startVerse
                 listOf(startVerse to text)
             }
