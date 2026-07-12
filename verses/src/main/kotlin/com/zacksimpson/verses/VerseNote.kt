@@ -19,7 +19,14 @@ data class VerseNote(
     val reference: String,
     val text: String,
     val createdAtMillis: Long,
+    // Nullable/additive so notes stored before this field existed keep deserializing —
+    // resolvedTranslation() below is how callers should read it, not this directly.
+    val translation: String? = null,
 )
+
+/** Notes predating this field don't know their translation — same fallback as
+ *  Translation.fromNameOrDefault, applied here since VerseNote stores the raw name. */
+fun VerseNote.resolvedTranslation(): Translation = Translation.fromNameOrDefault(translation)
 
 private val NOTES_KEY = stringPreferencesKey("verse_notes")
 
@@ -40,7 +47,7 @@ class VerseNotesRepository(private val dataStore: DataStore<Preferences>) {
             ?: emptyList()
 
     /** Always appends a new note; blank text is a no-op. */
-    suspend fun addNote(date: String, reference: String, text: String) {
+    suspend fun addNote(date: String, reference: String, text: String, translation: Translation) {
         val trimmed = text.trim()
         if (trimmed.isEmpty()) return
         dataStore.edit { prefs ->
@@ -50,6 +57,7 @@ class VerseNotesRepository(private val dataStore: DataStore<Preferences>) {
                 reference = reference,
                 text = trimmed,
                 createdAtMillis = System.currentTimeMillis(),
+                translation = translation.name,
             )
             prefs[NOTES_KEY] = json.encodeToString(serializer, updated)
         }
