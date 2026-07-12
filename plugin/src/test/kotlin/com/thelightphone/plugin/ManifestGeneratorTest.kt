@@ -46,6 +46,15 @@ class ManifestGeneratorTest {
     }
 
     @Test
+    fun `LightActivity is locked to portrait orientation`() {
+        val xml = render()
+        assertTrue(
+            xml.contains("""android:screenOrientation="portrait""""),
+            "expected LightActivity to be locked to portrait; got:\n$xml"
+        )
+    }
+
+    @Test
     fun `manifest carries the sdkVersion placeholder`() {
         val xml = render()
         // AGP substitutes ${sdkVersion} from manifestPlaceholders. The

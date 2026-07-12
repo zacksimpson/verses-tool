@@ -6,6 +6,9 @@ package com.thelightphone.plugin
  * The skeleton mirrors what every Light SDK tool needs (LightSdkApplication +
  * LightActivity + LightSdkReceiver + SDK-marker query). The only variation
  * across tools is the label and the set of `<uses-permission>` entries.
+ * LightActivity is locked to portrait — no Light Phone tool supports landscape,
+ * and per-tool manifests are disallowed (see LightSdkPlugin.validateNoUserManifest),
+ * so this is the only place that lock can live.
  *
  * All user-controlled strings have already been validated, but we XML-escape
  * them anyway so a future loosening of the validators can't open a manifest
@@ -38,6 +41,7 @@ object ManifestGenerator {
         appendLine("""            android:value="${xmlAttr(metadata.serverPackage)}" />""")
         appendLine("""        <activity""")
         appendLine("""            android:name="com.thelightphone.sdk.LightActivity"""")
+        appendLine("""            android:screenOrientation="portrait"""")
         appendLine("""            android:exported="true">""")
         appendLine("""            <intent-filter>""")
         appendLine("""                <action android:name="android.intent.action.MAIN" />""")
