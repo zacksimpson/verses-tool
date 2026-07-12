@@ -24,6 +24,21 @@ internal fun Preferences.selectedTranslation(): Translation =
 internal fun Preferences.cachedTranslation(): Translation =
     Translation.fromNameOrDefault(this[VersePreferences.CACHED_TRANSLATION])
 
+/** How many verses are currently cached offline for [translation] — 0 unless the cache's own
+ *  translation matches (there's only one durable cache slot, the daily verse, shared across
+ *  every translation and overwritten once a day; the lookup flow never persists what it
+ *  fetches). Parses [VersePreferences.CACHED_REFERENCE]'s verse range via [UsfmReference] —
+ *  falls back to 0 on a malformed/legacy reference rather than throwing, since this only
+ *  feeds a read-only display (Settings → Advanced → View API Logs). */
+internal fun Preferences.cachedVerseCount(translation: Translation): Int {
+    if (cachedTranslation() != translation) return 0
+    val reference = this[VersePreferences.CACHED_REFERENCE] ?: return 0
+    return runCatching {
+        val range = UsfmReference.parseRange(UsfmReference.toPassageId(reference))
+        range.endVerse - range.startVerse + 1
+    }.getOrDefault(0)
+}
+
 internal fun Preferences.lookupTranslation(): Translation =
     this[VersePreferences.LOOKUP_TRANSLATION]
         ?.let { stored -> Translation.entries.firstOrNull { it.name == stored } }

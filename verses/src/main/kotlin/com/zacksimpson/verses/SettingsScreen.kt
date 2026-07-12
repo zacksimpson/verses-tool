@@ -80,15 +80,20 @@ class SettingsScreen(sealedActivity: SealedLightActivity) : SimpleLightScreen<Un
                         label = "Copyright Info",
                         onClick = { navigateTo(screenFactory = { CopyrightInfoScreen(it) }) },
                     )
+                    SettingsLinkRow(
+                        label = "Advanced",
+                        onClick = { navigateTo(screenFactory = { AdvancedSettingsScreen(it) }) },
+                    )
                 }
             }
         }
     }
 }
 
-/** A settings row that's just a label leading to another screen — no current-value line. */
+/** A settings row that's just a label leading to another screen — no current-value line.
+ *  Shared with [AdvancedSettingsScreen], which is structured identically one level deeper. */
 @Composable
-private fun SettingsLinkRow(label: String, onClick: () -> Unit) {
+internal fun SettingsLinkRow(label: String, onClick: () -> Unit) {
     LightText(
         text = label,
         variant = LightTextVariant.Heading,
