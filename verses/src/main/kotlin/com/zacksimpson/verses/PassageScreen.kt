@@ -48,7 +48,7 @@ import java.time.LocalDate
 class PassageScreen(
     sealedActivity: SealedLightActivity,
     private val reference: String,
-    private val verses: List<Pair<Int, String>>,
+    private val verses: List<VerseSegment>,
     private val translation: Translation,
 ) : SimpleLightScreen<Unit>(sealedActivity) {
 
@@ -64,7 +64,7 @@ class PassageScreen(
         val hasNote = remember(notes, reference) { notes.any { it.date == today && it.reference == reference } }
         // VerseActionsScreen (Copy/Memorize/Add Notes) only needs flat text, not verse
         // boundaries — Memorize already splits on whitespace regardless of verse numbers.
-        val flatText = remember(verses) { joinVerseTexts(verses.map { it.second }) }
+        val flatText = remember(verses) { joinVerseTexts(verses.map { it.text }) }
 
         LightTheme(colors = themeColors) {
             SwipeBackContainer(onSwipeBack = { goBack(Unit) }) {
@@ -137,10 +137,13 @@ private data class VerseRowGroup(val indentLevel: Int, val pieces: List<VersePie
 
 /** Groups a passage's verses into rows to render: consecutive plain-prose verses merge
  *  into one open row (so e.g. Genesis 1:1-3 still reads as one flowing paragraph, verse
- *  numbers inline), while a poetic verse (Psalms, Proverbs, OT poetry quoted in the NT —
- *  see isPoeticText) always closes whatever's open and gets its own indented row(s), never
- *  sharing a row with a neighboring verse. */
-private fun rowGroupsFor(verses: List<Pair<Int, String>>): List<VerseRowGroup> {
+ *  numbers inline) unless a verse's own [VerseSegment.startsNewParagraph] closes the row
+ *  first (a real paragraph/section break from the source, not just a verse boundary) — so
+ *  e.g. Genesis 1's "The Second Day" verses start a fresh row from "The First Day"'s. A
+ *  poetic verse (Psalms, Proverbs, OT poetry quoted in the NT — see isPoeticText) always
+ *  closes whatever's open and gets its own indented row(s), never sharing a row with a
+ *  neighboring verse. */
+private fun rowGroupsFor(verses: List<VerseSegment>): List<VerseRowGroup> {
     val groups = mutableListOf<VerseRowGroup>()
     var openRow: MutableList<VersePiece>? = null
 
@@ -151,19 +154,20 @@ private fun rowGroupsFor(verses: List<Pair<Int, String>>): List<VerseRowGroup> {
 
     fun wordsOf(text: String) = text.split(Regex("\\s+")).filter { it.isNotEmpty() }
 
-    for ((number, text) in verses) {
-        if (isPoeticText(text)) {
+    for (verse in verses) {
+        if (isPoeticText(verse.text)) {
             closeOpenRow()
-            linesFromVerseText(text).forEachIndexed { lineIndex, line ->
+            linesFromVerseText(verse.text).forEachIndexed { lineIndex, line ->
                 val pieces = mutableListOf<VersePiece>()
-                if (lineIndex == 0) pieces.add(VersePiece.Number(number))
+                if (lineIndex == 0) pieces.add(VersePiece.Number(verse.number))
                 wordsOf(line.text).forEach { pieces.add(VersePiece.Word(it)) }
                 groups.add(VerseRowGroup(indentLevel = line.indentLevel, pieces = pieces))
             }
         } else {
+            if (verse.startsNewParagraph) closeOpenRow()
             val row = openRow ?: mutableListOf<VersePiece>().also { openRow = it }
-            row.add(VersePiece.Number(number))
-            wordsOf(text).forEach { row.add(VersePiece.Word(it)) }
+            row.add(VersePiece.Number(verse.number))
+            wordsOf(verse.text).forEach { row.add(VersePiece.Word(it)) }
         }
     }
     closeOpenRow()
@@ -178,7 +182,7 @@ private fun rowGroupsFor(verses: List<Pair<Int, String>>): List<VerseRowGroup> {
  *  their line breaks and indentation (see [rowGroupsFor]) instead of collapsing into one
  *  paragraph the way a plain multi-verse prose range still does. */
 @Composable
-private fun NumberedVerseText(verses: List<Pair<Int, String>>, modifier: Modifier = Modifier) {
+private fun NumberedVerseText(verses: List<VerseSegment>, modifier: Modifier = Modifier) {
     val rows = remember(verses) { rowGroupsFor(verses) }
     Column(modifier = modifier) {
         rows.forEachIndexed { index, row ->
