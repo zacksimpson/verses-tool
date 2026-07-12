@@ -94,6 +94,10 @@ class VersesViewModel(
                     p[VersePreferences.CACHED_TEXT] = text
                     p[VersePreferences.CACHED_TRANSLATION] = translation.name
                 }
+                // Counted here too (not just the manual lookup flows) so Settings → Advanced
+                // → View API Logs reflects every real API call, not just lookups — a no-op
+                // for public domain translations, which LookupRateLimiter never tracks.
+                LookupRateLimiter(dataStore).recordLookup(translation)
                 setState(VerseUiState.Loaded(reference = reference, text = text, translation = translation))
             },
             onFailure = {

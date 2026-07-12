@@ -22,6 +22,23 @@ internal object LookupRateLimit {
 
     fun nextCount(storedDate: String?, storedCount: Int, today: String): Int =
         countForToday(storedDate, storedCount, today) + 1
+
+    fun dateKey(translation: Translation) = stringPreferencesKey("lookup_count_date_${translation.name}")
+    fun countKey(translation: Translation) = intPreferencesKey("lookup_count_${translation.name}")
+
+    /** Today's call count for [translation] against an already-read [prefs] snapshot — for a
+     *  display screen that already collects prefs reactively (Settings → Advanced → View API
+     *  Logs), unlike [LookupRateLimiter.shouldAllowLookup]/[LookupRateLimiter.recordLookup]
+     *  which read DataStore themselves and gate/advance the count. Always 0 for public domain
+     *  sources, which are never tracked. */
+    fun countToday(prefs: Preferences, translation: Translation): Int {
+        if (translation.source is TranslationSource.PublicDomain) return 0
+        return countForToday(
+            storedDate = prefs[dateKey(translation)],
+            storedCount = prefs[countKey(translation)] ?: 0,
+            today = LocalDate.now().toString(),
+        )
+    }
 }
 
 /**
@@ -39,8 +56,8 @@ internal class LookupRateLimiter(private val dataStore: DataStore<Preferences>) 
         val prefs = dataStore.data.first()
         val today = LocalDate.now().toString()
         return LookupRateLimit.isAllowed(
-            storedDate = prefs[dateKey(translation)],
-            storedCount = prefs[countKey(translation)] ?: 0,
+            storedDate = prefs[LookupRateLimit.dateKey(translation)],
+            storedCount = prefs[LookupRateLimit.countKey(translation)] ?: 0,
             today = today,
         )
     }
@@ -50,15 +67,12 @@ internal class LookupRateLimiter(private val dataStore: DataStore<Preferences>) 
         val today = LocalDate.now().toString()
         dataStore.edit { prefs ->
             val nextCount = LookupRateLimit.nextCount(
-                storedDate = prefs[dateKey(translation)],
-                storedCount = prefs[countKey(translation)] ?: 0,
+                storedDate = prefs[LookupRateLimit.dateKey(translation)],
+                storedCount = prefs[LookupRateLimit.countKey(translation)] ?: 0,
                 today = today,
             )
-            prefs[dateKey(translation)] = today
-            prefs[countKey(translation)] = nextCount
+            prefs[LookupRateLimit.dateKey(translation)] = today
+            prefs[LookupRateLimit.countKey(translation)] = nextCount
         }
     }
-
-    private fun dateKey(translation: Translation) = stringPreferencesKey("lookup_count_date_${translation.name}")
-    private fun countKey(translation: Translation) = intPreferencesKey("lookup_count_${translation.name}")
 }
