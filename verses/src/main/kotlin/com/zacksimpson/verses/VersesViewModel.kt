@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.thelightphone.sdk.LightViewModel
 import com.thelightphone.sdk.SimpleLightScreen
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -34,20 +35,25 @@ class VersesViewModel(
     private val _uiState = MutableStateFlow<VerseUiState>(VerseUiState.Loading)
     val uiState: StateFlow<VerseUiState> = _uiState.asStateFlow()
 
-    init {
-        viewModelScope.launch(Dispatchers.IO) {
-            loadStoredState()
-        }
+    // Only paints the cache immediately, if there is one — deciding whether it's stale and
+    // needs a re-fetch is onScreenShow's job below. onScreenShow always fires right after
+    // this ViewModel is constructed (the SDK evaluates the lazy `viewModel` property and
+    // immediately calls onScreenShow on it), so onScreenShow joins this job before doing
+    // anything — otherwise the two coroutines race with no ordering guarantee, and a stale
+    // cache-paint landing after a fresh fetch already completed would overwrite it.
+    private val initialLoadJob: Job = viewModelScope.launch(Dispatchers.IO) {
+        showCachedStateIfAvailable()
     }
 
     override fun onScreenShow(screen: SimpleLightScreen<Unit>) {
         super.onScreenShow(screen)
         viewModelScope.launch(Dispatchers.IO) {
+            initialLoadJob.join()
             refreshIfStale(dataStore.data.first())
         }
     }
 
-    private suspend fun loadStoredState() {
+    private suspend fun showCachedStateIfAvailable() {
         val prefs = dataStore.data.first()
         val translation = prefs.selectedTranslation()
         val cachedRef = prefs[VersePreferences.CACHED_REFERENCE]
@@ -55,11 +61,10 @@ class VersesViewModel(
 
         // Only show the cache immediately if it matches the current translation — a
         // mismatch (translation was switched since the last cache write) gets resolved
-        // by refreshIfStale below instead of flashing the old translation's text.
+        // by onScreenShow's refreshIfStale instead of flashing the old translation's text.
         if (cachedRef != null && cachedText != null && prefs.cachedTranslation() == translation) {
             setState(VerseUiState.Loaded(reference = cachedRef, text = cachedText, translation = translation))
         }
-        refreshIfStale(prefs)
     }
 
     private suspend fun refreshIfStale(prefs: Preferences) {

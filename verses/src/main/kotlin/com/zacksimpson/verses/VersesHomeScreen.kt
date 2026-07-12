@@ -168,6 +168,16 @@ class VersesHomeScreen(sealedActivity: SealedLightActivity) :
                             contentDescription = "Settings",
                         ),
                     )
+                    // Sits between Settings and Memorize so it lands in the visual center
+                    // of the bar once both are present — the entry point for looking up
+                    // any passage, not just the daily verse.
+                    add(
+                        LightBarButton.LightIcon(
+                            icon = LightIcons.SEARCH,
+                            onClick = { navigateTo(screenFactory = { VerseLookupScreen(it) }) },
+                            contentDescription = "Look up a verse",
+                        ),
+                    )
                     if (loaded != null) {
                         val memorizeIcon = if (LightThemeTokens.surfaceScheme == LightSurfaceScheme.Dark) {
                             R.drawable.ic_memorize_white

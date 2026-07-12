@@ -22,6 +22,28 @@ sealed interface TranslationSource {
             "publisher's terms for free, non-commercial use, once per day and cached on-device the " +
             "same way as above."
     }
+
+    /** Public domain text — unlike Esv/YouVersion, has no rate limit or storage restriction
+     *  of any kind, so it's the only source that supports fetching a whole chapter rather
+     *  than one passage at a time (see VerseFetcher.fetchChapter). Both public domain
+     *  translations come from bible.helloao.org, just under different translation ids —
+     *  see [PublicDomainProvider.translationId]. */
+    data class PublicDomain(val provider: PublicDomainProvider) : TranslationSource {
+        override val usageNote = provider.usageNote
+    }
+}
+
+enum class PublicDomainProvider(val translationId: String, val usageNote: String) {
+    KJV(
+        translationId = "eng_kjv",
+        usageNote = "Verse text is fetched from bible.helloao.org, a free service hosting " +
+            "the King James Version. No usage restrictions apply.",
+    ),
+    BSB(
+        translationId = "BSB",
+        usageNote = "Verse text is fetched from bible.helloao.org, a free service hosting " +
+            "the Berean Standard Bible. No usage restrictions apply.",
+    ),
 }
 
 enum class Translation(
@@ -59,6 +81,24 @@ enum class Translation(
             "Foundation. Used by permission. All rights reserved. www.Lockman.org",
         trademarkNotice = "\"NASB\" and \"New American Standard Bible\" are registered trademarks of " +
             "The Lockman Foundation.",
+    ),
+    KJV(
+        abbreviation = "KJV",
+        displayName = "King James Version",
+        source = TranslationSource.PublicDomain(PublicDomainProvider.KJV),
+        copyrightNotice = "The King James Version (Authorized Version) of the Bible is in the " +
+            "public domain in the United States.",
+        trademarkNotice = "The King James Version has no trademark or copyright holder; it is " +
+            "freely available for any use.",
+    ),
+    BSB(
+        abbreviation = "BSB",
+        displayName = "Berean Standard Bible",
+        source = TranslationSource.PublicDomain(PublicDomainProvider.BSB),
+        copyrightNotice = "The Berean Standard Bible was dedicated to the public domain by its " +
+            "publisher, Bible Hub, on April 30, 2023. All uses are freely permitted.",
+        trademarkNotice = "The Berean Standard Bible has no trademark or copyright holder; it is " +
+            "freely available for any use.",
     );
 
     companion object {
