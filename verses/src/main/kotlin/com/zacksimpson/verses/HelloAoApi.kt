@@ -36,8 +36,10 @@ internal data class BibleChapter(
  * its own line — that's what marks it as poetry in the first place; plain text with no
  * "poem" tag just continues whatever line is open, so ordinary prose still collapses back
  * into a single line exactly as before this existed. Lines come back joined with "\n",
- * indented lines prefixed with [POETIC_INDENT_UNIT] per level — the encoding VerseText and
- * PassageScreen's NumberedVerseText read back out (see linesFromVerseText).
+ * every poetic line prefixed with [POETIC_LINE_MARKER] (so even an unindented poetic line
+ * stays distinguishable from prose) followed by [POETIC_INDENT_UNIT] per indent level —
+ * the encoding VerseText and PassageScreen's NumberedVerseText read back out (see
+ * linesFromVerseText).
  */
 internal object HelloAoParsing {
     fun versesFromContent(content: List<JsonElement>): List<Pair<Int, String>> =
@@ -64,6 +66,7 @@ internal object HelloAoParsing {
                 item is JsonObject && item["poem"] != null -> {
                     flush()
                     val indentLevel = ((item["poem"]?.jsonPrimitive?.intOrNull ?: 1) - 1).coerceAtLeast(0)
+                    current.append(POETIC_LINE_MARKER)
                     current.append(POETIC_INDENT_UNIT.repeat(indentLevel))
                     appendWord(current, item["text"]?.jsonPrimitive?.contentOrNull)
                 }
@@ -77,7 +80,9 @@ internal object HelloAoParsing {
 
     private fun appendWord(builder: StringBuilder, word: String?) {
         if (word.isNullOrEmpty()) return
-        if (builder.isNotEmpty() && !builder.endsWith(" ")) builder.append(" ")
+        if (builder.isNotEmpty() && !builder.endsWith(" ") && !builder.endsWith(POETIC_LINE_MARKER)) {
+            builder.append(" ")
+        }
         builder.append(word)
     }
 }

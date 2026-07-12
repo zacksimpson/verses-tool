@@ -3,6 +3,7 @@ package com.zacksimpson.verses
 import kotlinx.serialization.json.Json
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 /** Tests HelloAoParsing directly against real captured JSON shapes (confirmed live
  *  against bible.helloao.org) rather than hitting the network. */
@@ -52,13 +53,17 @@ class HelloAoApiTest {
         assertEquals(1, verses.size)
         assertEquals(1, verses[0].first)
         assertEquals(
-            "The LORD is my shepherd;\n${POETIC_INDENT_UNIT}I shall not want.",
+            "$POETIC_LINE_MARKER" + "The LORD is my shepherd;\n" +
+                "$POETIC_LINE_MARKER$POETIC_INDENT_UNIT" + "I shall not want.",
             verses[0].second,
         )
     }
 
     @Test
-    fun `a trailing lineBreak after a poetry line adds no phantom blank line`() {
+    fun `a single poetic line with no second line is still marked poetic, not plain prose`() {
+        // A verse whose only poetic content is one "poem":1 segment (no "poem":2, so no
+        // real line break) — the exact shape that used to collapse to a string
+        // indistinguishable from plain prose before POETIC_LINE_MARKER was added.
         val body = """
             {"chapter":{"number":23,"content":[
                 {"type":"verse","number":4,"content":[
@@ -72,9 +77,11 @@ class HelloAoApiTest {
         val verses = HelloAoParsing.versesFromContent(parsed.chapter.content)
 
         assertEquals(1, verses.size)
+        assertEquals(4, verses[0].first)
         assertEquals(
-            4 to "Yea, though I walk through the valley of the shadow of death, I will fear no evil.",
-            verses[0],
+            "$POETIC_LINE_MARKER" + "Yea, though I walk through the valley of the shadow of death, I will fear no evil.",
+            verses[0].second,
         )
+        assertTrue(isPoeticText(verses[0].second))
     }
 }

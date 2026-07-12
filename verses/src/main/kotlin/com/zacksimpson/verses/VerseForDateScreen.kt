@@ -61,10 +61,26 @@ class VerseForDateScreen(
                     return@LaunchedEffect
                 }
 
+                // Same daily backstop the verse lookup flow uses — this screen has no
+                // caching of its own (a fresh live fetch on every date tapped), so without
+                // this a user rapidly browsing VerseDatePickerScreen's calendar could burn
+                // through the shared ESV/YouVersion API budget with nothing to stop it.
+                val rateLimiter = LookupRateLimiter(lightContext.dataStore)
+                if (!rateLimiter.shouldAllowLookup(translation)) {
+                    state = VerseUiState.ConfigError(
+                        "Today's lookup limit for ${translation.abbreviation} has been reached. " +
+                            "Try again tomorrow, or switch translations in Settings.",
+                    )
+                    return@LaunchedEffect
+                }
+
                 val reference = VerseSelector.referenceForDate(LocalDate.parse(dateStr))
                 val result = fetcher.fetchVerseText(translation, reference)
                 state = result.fold(
-                    onSuccess = { text -> VerseUiState.Loaded(reference = reference, text = text, translation = translation) },
+                    onSuccess = { text ->
+                        rateLimiter.recordLookup(translation)
+                        VerseUiState.Loaded(reference = reference, text = text, translation = translation)
+                    },
                     onFailure = { VerseUiState.ConfigError("Couldn't load that day's verse. Try again shortly.") },
                 )
             } finally {

@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.thelightphone.sdk.LightViewModel
 import com.thelightphone.sdk.SimpleLightScreen
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -34,22 +35,20 @@ class VersesViewModel(
     private val _uiState = MutableStateFlow<VerseUiState>(VerseUiState.Loading)
     val uiState: StateFlow<VerseUiState> = _uiState.asStateFlow()
 
-    init {
-        // Only paints the cache immediately, if there is one — deciding whether it's
-        // stale and needs a re-fetch is onScreenShow's job below. onScreenShow always
-        // fires right after this ViewModel is constructed (the SDK evaluates the lazy
-        // `viewModel` property and immediately calls onScreenShow on it), so having both
-        // this init block and onScreenShow each independently call refreshIfStale used to
-        // fire two concurrent fetches for the same verse on a cold start with a stale
-        // cache — one call site owning "check staleness and fetch" avoids that.
-        viewModelScope.launch(Dispatchers.IO) {
-            showCachedStateIfAvailable()
-        }
+    // Only paints the cache immediately, if there is one — deciding whether it's stale and
+    // needs a re-fetch is onScreenShow's job below. onScreenShow always fires right after
+    // this ViewModel is constructed (the SDK evaluates the lazy `viewModel` property and
+    // immediately calls onScreenShow on it), so onScreenShow joins this job before doing
+    // anything — otherwise the two coroutines race with no ordering guarantee, and a stale
+    // cache-paint landing after a fresh fetch already completed would overwrite it.
+    private val initialLoadJob: Job = viewModelScope.launch(Dispatchers.IO) {
+        showCachedStateIfAvailable()
     }
 
     override fun onScreenShow(screen: SimpleLightScreen<Unit>) {
         super.onScreenShow(screen)
         viewModelScope.launch(Dispatchers.IO) {
+            initialLoadJob.join()
             refreshIfStale(dataStore.data.first())
         }
     }
