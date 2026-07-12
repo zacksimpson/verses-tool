@@ -1,5 +1,7 @@
 package com.zacksimpson.verses
 
+import androidx.datastore.preferences.core.preferencesOf
+import java.time.LocalDate
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -53,5 +55,34 @@ class LookupRateLimitTest {
         assertEquals(6, LookupRateLimit.nextCount(storedDate = "2026-07-10", storedCount = 5, today = "2026-07-10"))
         assertEquals(1, LookupRateLimit.nextCount(storedDate = "2026-07-09", storedCount = 5, today = "2026-07-10"))
         assertEquals(1, LookupRateLimit.nextCount(storedDate = null, storedCount = 0, today = "2026-07-10"))
+    }
+
+    @Test
+    fun `countToday reads today's stored count for a copyrighted translation`() {
+        val today = LocalDate.now().toString()
+        val prefs = preferencesOf(
+            LookupRateLimit.dateKey(Translation.ESV) to today,
+            LookupRateLimit.countKey(Translation.ESV) to 12,
+        )
+        assertEquals(12, LookupRateLimit.countToday(prefs, Translation.ESV))
+    }
+
+    @Test
+    fun `countToday ignores a stale stored count from a previous day`() {
+        val prefs = preferencesOf(
+            LookupRateLimit.dateKey(Translation.ESV) to "2020-01-01",
+            LookupRateLimit.countKey(Translation.ESV) to 99,
+        )
+        assertEquals(0, LookupRateLimit.countToday(prefs, Translation.ESV))
+    }
+
+    @Test
+    fun `countToday is always 0 for public domain translations`() {
+        val today = LocalDate.now().toString()
+        val prefs = preferencesOf(
+            LookupRateLimit.dateKey(Translation.KJV) to today,
+            LookupRateLimit.countKey(Translation.KJV) to 40,
+        )
+        assertEquals(0, LookupRateLimit.countToday(prefs, Translation.KJV))
     }
 }
