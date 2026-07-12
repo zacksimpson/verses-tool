@@ -50,21 +50,16 @@ internal class VerseFetcher {
             is TranslationSource.PublicDomain -> helloAoApi(source.provider).fetchVerseText(reference)
         }
 
-    /** Same passage as [fetchVerseText], but with each verse's number kept alongside its
-     *  text instead of flattened into one string — used by the passage display screen so
-     *  a multi-verse selection can show its verse numbers. Public domain sources return
-     *  true per-verse structure (their own APIs already provide it); ESV/YouVersion have
-     *  no structured multi-verse endpoint without either parsing verse markers out of
-     *  ESV's own text format or making one request per verse (which would multiply the
-     *  call count) — so for those, the whole range comes back as a single block labeled
-     *  with the range's starting verse rather than true per-verse numbers. */
-    suspend fun fetchVerses(translation: Translation, reference: String): Result<List<Pair<Int, String>>> =
+    /** Same passage as [fetchVerseText], but with each verse's number and paragraph
+     *  structure kept alongside its text instead of flattened into one string — used by
+     *  the passage display screen so a multi-verse selection can show its verse numbers
+     *  and paragraph breaks. All four sources now parse real per-verse structure out of
+     *  their own response format (see HelloAoParsing, EsvTextParsing, YouVersionHtmlParsing). */
+    suspend fun fetchVerses(translation: Translation, reference: String): Result<List<VerseSegment>> =
         when (val source = translation.source) {
             is TranslationSource.PublicDomain -> helloAoApi(source.provider).fetchVerses(reference)
-            is TranslationSource.Esv, is TranslationSource.YouVersion -> fetchVerseText(translation, reference).mapCatching { text ->
-                val startVerse = UsfmReference.parseRange(UsfmReference.toPassageId(reference)).startVerse
-                listOf(startVerse to text)
-            }
+            is TranslationSource.Esv -> esvApi.fetchVerses(reference)
+            is TranslationSource.YouVersion -> youVersionApi.fetchVerses(source.versionId, reference)
         }
 
     /** Only public domain text has no rate limit or storage restriction to protect, so
