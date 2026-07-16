@@ -50,11 +50,3 @@ bin/
 __pycache__/
 *.py[cod]
 .pytest_cache/
-
-### Node (scripts/) ###
-node_modules/
-
-### Akkurat is commercially licensed (Lineto) — never commit the font file itself,
-### only the rendered PNGs it produces. Pull it locally from a real LP3's
-### /system/fonts if you need to regenerate the README image.
-assets/fonts/
