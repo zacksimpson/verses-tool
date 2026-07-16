@@ -48,8 +48,8 @@ class VerseActionsViewModel(
     }
 }
 
-/** Long-press action sheet for a verse — Copy, Memorize, and Add Notes — styled to match
- *  reminders-tool's ListActionsScreen. */
+/** Long-press action sheet for a verse — Copy, Memorize, Add Notes, and (when notes already
+ *  exist for this reference) View Notes — styled to match reminders-tool's ListActionsScreen. */
 class VerseActionsScreen(
     sealedActivity: SealedLightActivity,
     private val date: String,
@@ -68,6 +68,8 @@ class VerseActionsScreen(
     override fun Content() {
         val themeColors by LightThemeController.colors.collectAsState()
         val clipboardManager = LocalClipboardManager.current
+        val notes by viewModel.notes.collectAsState()
+        val hasNotesForVerse = notes.any { it.reference == reference }
 
         LightTheme(colors = themeColors) {
             SwipeBackContainer(onSwipeBack = { goBack(Unit) }) {
@@ -115,6 +117,17 @@ class VerseActionsScreen(
                             )
                         },
                     )
+                    if (hasNotesForVerse) {
+                        ActionRow(
+                            text = "View Notes",
+                            onClick = {
+                                navigateTo(
+                                    screenFactory = { AllNotesScreen(it, filterReference = reference) },
+                                    resultCallback = { goBack(Unit) },
+                                )
+                            },
+                        )
+                    }
                 }
             }
         }
