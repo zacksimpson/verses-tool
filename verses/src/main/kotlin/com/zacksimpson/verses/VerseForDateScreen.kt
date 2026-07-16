@@ -68,7 +68,10 @@ class VerseForDateScreen(
                 if (!rateLimiter.shouldAllowLookup(translation)) {
                     state = VerseUiState.ConfigError(
                         "Today's lookup limit for ${translation.abbreviation} has been reached. " +
-                            "Try again tomorrow, or switch translations in Settings.",
+                            "There's a soft daily limit per device on lookups for copyrighted " +
+                            "translations, to honor their API terms. Lookups for it pause until the " +
+                            "next day. You can always switch to a public domain translation in " +
+                            "Settings to continue reading.",
                     )
                     return@LaunchedEffect
                 }
