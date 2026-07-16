@@ -1,8 +1,6 @@
 # Verses
 
-A daily Bible verse tool for the Light Phone III, built with the official [Light SDK](https://github.com/lightphone/light-sdk).
-
-Shows one verse a day, refreshed automatically each morning. Look up the verse for any past date, jot a note against any verse, and spend focused time memorizing God's word.
+A focused Bible reading tool for the Light Phone III, built with the official [Light SDK](https://github.com/lightphone/light-sdk).
 
 ---
 
@@ -10,11 +8,12 @@ Shows one verse a day, refreshed automatically each morning. Look up the verse f
 
 ## Features
 
-* One Bible verse a day, cycling through a bundled reference list by day-of-year
-* Look up the verse for any past date
-* Add free-text notes to any verse, and edit them anytime
-* All your notes in one place, most recent first
-* Memorize mode: hide a few random words at a time, with forward/back buttons to gradually hide/reveal the text
+* Engage with God's word with the Verse of the Day
+* Full access to any verse or passage in the Bible
+* Memorize: hide a few random words at a time, with forward/back buttons to gradually hide/reveal the text
+* Multiple translations supported, with more on the way
+* Add notes to any verse or passage, and reference them anytime
+
 
 ---
 
