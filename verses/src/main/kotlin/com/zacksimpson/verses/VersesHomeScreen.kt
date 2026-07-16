@@ -12,9 +12,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.datastore.preferences.core.edit
 import com.thelightphone.sdk.InitialScreen
 import com.thelightphone.sdk.LightScreen
 import com.thelightphone.sdk.SealedLightActivity
@@ -32,6 +34,8 @@ import com.thelightphone.sdk.ui.LightThemeTokens
 import com.thelightphone.sdk.ui.LightTopBar
 import com.thelightphone.sdk.ui.LightTopBarCenter
 import com.thelightphone.sdk.ui.gridUnitsAsDp
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import java.time.LocalDate
 
 @InitialScreen
@@ -47,6 +51,7 @@ class VersesHomeScreen(sealedActivity: SealedLightActivity) :
     @Composable
     override fun Content() {
         val themeColors by LightThemeController.colors.collectAsState()
+        val scope = rememberCoroutineScope()
         val state by viewModel.uiState.collectAsState()
         val notesRepo = remember { VerseNotesRepository(lightContext.dataStore) }
         val notes by notesRepo.notes.collectAsState(initial = emptyList())
@@ -172,7 +177,25 @@ class VersesHomeScreen(sealedActivity: SealedLightActivity) :
                     add(
                         LightBarButton.LightIcon(
                             icon = LightIcons.SEARCH,
-                            onClick = { navigateTo(screenFactory = { VerseLookupScreen(it) }) },
+                            onClick = {
+                                scope.launch {
+                                    val prefs = lightContext.dataStore.data.first()
+                                    val hasSeenInfo = prefs[VersePreferences.HAS_SEEN_FALLBACK_TRANSLATION_INFO] ?: false
+                                    if (hasSeenInfo) {
+                                        navigateTo(screenFactory = { VerseLookupScreen(it) })
+                                    } else {
+                                        lightContext.dataStore.edit { p ->
+                                            p[VersePreferences.HAS_SEEN_FALLBACK_TRANSLATION_INFO] = true
+                                        }
+                                        navigateTo(
+                                            screenFactory = { FallbackTranslationInfoScreen(it) },
+                                            resultCallback = {
+                                                navigateTo(screenFactory = { VerseLookupScreen(it) })
+                                            },
+                                        )
+                                    }
+                                }
+                            },
                             contentDescription = "Look up a verse",
                         ),
                     )

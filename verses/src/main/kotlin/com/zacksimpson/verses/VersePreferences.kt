@@ -1,9 +1,13 @@
 package com.zacksimpson.verses
 
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 
 internal object VersePreferences {
+    // Gates the one-time FallbackTranslationInfoScreen shown the first time the search
+    // icon is tapped — flipped to true right before that first navigation, never reset.
+    val HAS_SEEN_FALLBACK_TRANSLATION_INFO = booleanPreferencesKey("has_seen_fallback_translation_info")
     val CACHED_DATE = stringPreferencesKey("cached_date")
     val CACHED_REFERENCE = stringPreferencesKey("cached_reference")
     val CACHED_TEXT = stringPreferencesKey("cached_text")
