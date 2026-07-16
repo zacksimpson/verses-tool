@@ -29,6 +29,14 @@ Shows one verse a day, refreshed automatically each morning. Look up the verse f
 * Berean Standard Bible (BSB)
 * (More to come!)
 
+### About Fallback Translations
+Most Bible translations (eg ESV, NIV, NASB, etc) contain inherent copyright limitations or rules around their API. KJV and BSB are exceptions to this, because they are both in the public domain. Because of that, verse and passage lookups default to KJV, so browsing around doesn't eat into the shared API budget the copyrighted translations share.
+
+> [!NOTE]
+> **You're always welcome to change the Fallback Translation!** Head to **Settings → Fallback Translation** and pick whichever translation you'd like lookups to use instead.
+
+At this time, to save on expenses, Verses uses a shared API as I determine the demand for the tool – so we're all contributing to the same rate limits :) to help with this, there is a soft per-device daily limit on lookups for copyrighted translations to honor their respective API limitations. In the unlikely event a user hits their device limit, lookups for that translation pause until the next day. You can switch to a public domain translation anytime in Settings to keep going.
+
 ---
 
 ## Installing on Light Phone III
