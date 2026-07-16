@@ -25,7 +25,6 @@ import com.thelightphone.sdk.SimpleLightScreen
 import com.thelightphone.sdk.ui.LightBarButton
 import com.thelightphone.sdk.ui.LightBottomBar
 import com.thelightphone.sdk.ui.LightIcons
-import com.thelightphone.sdk.ui.LightScrollBarPosition
 import com.thelightphone.sdk.ui.LightScrollView
 import com.thelightphone.sdk.ui.LightText
 import com.thelightphone.sdk.ui.LightTextVariant
@@ -91,7 +90,6 @@ class MemorizeScreen(
                     Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
                         LightScrollView(
                             modifier = Modifier.fillMaxSize(),
-                            scrollBarPosition = LightScrollBarPosition.Inside,
                         ) {
                             Column(
                                 modifier = Modifier.padding(
