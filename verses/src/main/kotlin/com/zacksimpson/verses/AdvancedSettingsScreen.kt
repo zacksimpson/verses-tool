@@ -19,8 +19,9 @@ import com.thelightphone.sdk.ui.LightTopBar
 import com.thelightphone.sdk.ui.LightTopBarCenter
 import com.thelightphone.sdk.ui.gridUnitsAsDp
 
-/** One level under Settings, for options most users never need — currently just the API
- *  call/cache log, kept out of the main Settings list so it doesn't compete for attention. */
+/** One level under Settings, for options most users never need — the API call/cache log
+ *  and the copyright/trademark notices, kept out of the main Settings list so they don't
+ *  compete for attention. */
 class AdvancedSettingsScreen(sealedActivity: SealedLightActivity) : SimpleLightScreen<Unit>(sealedActivity) {
 
     @Composable
@@ -43,6 +44,10 @@ class AdvancedSettingsScreen(sealedActivity: SealedLightActivity) : SimpleLightS
                     SettingsLinkRow(
                         label = "View API Logs",
                         onClick = { navigateTo(screenFactory = { ApiLogsScreen(it) }) },
+                    )
+                    SettingsLinkRow(
+                        label = "Copyright Info",
+                        onClick = { navigateTo(screenFactory = { CopyrightInfoScreen(it) }) },
                     )
                 }
             }
