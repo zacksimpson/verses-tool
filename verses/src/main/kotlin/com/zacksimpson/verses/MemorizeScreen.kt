@@ -74,14 +74,16 @@ class MemorizeScreen(
         val blankedIndices = remember(blankedCount) { blankOrder.take(blankedCount).toSet() }
 
         LightTheme(colors = themeColors) {
-            SwipeBackContainer(onSwipeBack = { goBack(Unit) }) {
+            // Modal-style (DONE in the bottom bar to dismiss, no back chevron) — swipe-back
+            // is intentionally off so there's exactly one way out, matching the affordance
+            // shown, same pattern as VerseDatePickerScreen's calendar.
+            SwipeBackContainer(enabled = false, onSwipeBack = { goBack(Unit) }) {
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
                         .background(LightThemeTokens.colors.background),
                 ) {
                     LightTopBar(
-                        leftButton = LightBarButton.LightIcon(LightIcons.BACK, onClick = { goBack(Unit) }),
                         center = LightTopBarCenter.Text("Memorize"),
                         modifier = Modifier.padding(bottom = 0.5f.gridUnitsAsDp()),
                     )
@@ -124,6 +126,14 @@ class MemorizeScreen(
                                     null
                                 },
                                 contentDescription = "Show previous words",
+                            ),
+                            // Same "DONE" styling as a ConfirmScreen's confirm button
+                            // (LightTextVariant.Button, the bottom bar's own default text
+                            // variant) — the only way to leave this modal screen now that
+                            // there's no back chevron or swipe-back.
+                            LightBarButton.Text(
+                                text = "DONE",
+                                onClick = { goBack(Unit) },
                             ),
                             LightBarButton.LightIcon(
                                 icon = LightIcons.ARROW_RIGHT,
