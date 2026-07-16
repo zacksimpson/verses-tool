@@ -17,6 +17,12 @@ import com.thelightphone.sdk.ui.gridUnitsAsDp
 val VERSE_WORD_HORIZONTAL_GAP = 4.dp
 val VERSE_WORD_VERTICAL_GAP = 4.dp
 
+/** Extra vertical gap above a row that starts a new paragraph — bigger than
+ *  [VERSE_WORD_VERTICAL_GAP] so a real paragraph break reads as visually distinct from a
+ *  line just wrapping for width, which used the same small gap as everything else and made
+ *  the two indistinguishable at this text size. Used by PassageScreen's NumberedVerseText. */
+val PARAGRAPH_VERTICAL_GAP = 14.dp
+
 /** Marks the start of a poetic line — a tab never otherwise appears in verse text, and
  *  unlike relying on indentation alone, this stays present even for an unindented ("poem":
  *  1) poetic line, so a verse that's a single poetic line at indent level 0 is still

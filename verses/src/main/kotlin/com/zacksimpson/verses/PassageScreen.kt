@@ -133,7 +133,11 @@ private sealed class VersePiece {
     data class Word(val text: String) : VersePiece()
 }
 
-private data class VerseRowGroup(val indentLevel: Int, val pieces: List<VersePiece>)
+/** [startsNewParagraph] marks a row that should get the wider [PARAGRAPH_VERTICAL_GAP]
+ *  above it instead of the ordinary [VERSE_WORD_VERTICAL_GAP] — true only for the row a
+ *  paragraph/poem actually begins on, never for a later row that's just a continuation
+ *  (a wrapped prose line, or a poetic verse's second-and-later lines). */
+private data class VerseRowGroup(val indentLevel: Int, val pieces: List<VersePiece>, val startsNewParagraph: Boolean)
 
 /** Groups a passage's verses into rows to render: consecutive plain-prose verses merge
  *  into one open row (so e.g. Genesis 1:1-3 still reads as one flowing paragraph, verse
@@ -146,9 +150,12 @@ private data class VerseRowGroup(val indentLevel: Int, val pieces: List<VersePie
 private fun rowGroupsFor(verses: List<VerseSegment>): List<VerseRowGroup> {
     val groups = mutableListOf<VerseRowGroup>()
     var openRow: MutableList<VersePiece>? = null
+    var openRowStartsNewParagraph = false
 
     fun closeOpenRow() {
-        openRow?.let { if (it.isNotEmpty()) groups.add(VerseRowGroup(indentLevel = 0, pieces = it)) }
+        openRow?.let {
+            if (it.isNotEmpty()) groups.add(VerseRowGroup(indentLevel = 0, pieces = it, startsNewParagraph = openRowStartsNewParagraph))
+        }
         openRow = null
     }
 
@@ -161,13 +168,22 @@ private fun rowGroupsFor(verses: List<VerseSegment>): List<VerseRowGroup> {
                 val pieces = mutableListOf<VersePiece>()
                 if (lineIndex == 0) pieces.add(VersePiece.Number(verse.number))
                 wordsOf(line.text).forEach { pieces.add(VersePiece.Word(it)) }
-                groups.add(VerseRowGroup(indentLevel = line.indentLevel, pieces = pieces))
+                groups.add(
+                    VerseRowGroup(
+                        indentLevel = line.indentLevel,
+                        pieces = pieces,
+                        startsNewParagraph = lineIndex == 0 && verse.startsNewParagraph,
+                    ),
+                )
             }
         } else {
             if (verse.startsNewParagraph) closeOpenRow()
-            val row = openRow ?: mutableListOf<VersePiece>().also { openRow = it }
-            row.add(VersePiece.Number(verse.number))
-            wordsOf(verse.text).forEach { row.add(VersePiece.Word(it)) }
+            if (openRow == null) {
+                openRow = mutableListOf()
+                openRowStartsNewParagraph = verse.startsNewParagraph
+            }
+            openRow!!.add(VersePiece.Number(verse.number))
+            wordsOf(verse.text).forEach { openRow!!.add(VersePiece.Word(it)) }
         }
     }
     closeOpenRow()
@@ -180,15 +196,23 @@ private fun rowGroupsFor(verses: List<VerseSegment>): List<VerseRowGroup> {
  *  Each verse's number is marked inline before its first word — smaller and unbolded next
  *  to the reading text so it reads as a marker, not another word. Poetic passages keep
  *  their line breaks and indentation (see [rowGroupsFor]) instead of collapsing into one
- *  paragraph the way a plain multi-verse prose range still does. */
+ *  paragraph the way a plain multi-verse prose range still does. A row that starts a new
+ *  paragraph gets the wider [PARAGRAPH_VERTICAL_GAP] above it instead of the ordinary
+ *  [VERSE_WORD_VERTICAL_GAP], so a real paragraph break stays visually distinct from a line
+ *  that only wrapped for width — otherwise indistinguishable at this text size. */
 @Composable
 private fun NumberedVerseText(verses: List<VerseSegment>, modifier: Modifier = Modifier) {
     val rows = remember(verses) { rowGroupsFor(verses) }
     Column(modifier = modifier) {
         rows.forEachIndexed { index, row ->
+            val topGap = when {
+                index == 0 -> 0.dp
+                row.startsNewParagraph -> PARAGRAPH_VERTICAL_GAP
+                else -> VERSE_WORD_VERTICAL_GAP
+            }
             FlowRow(
                 modifier = Modifier
-                    .padding(top = if (index > 0) VERSE_WORD_VERTICAL_GAP else 0.dp)
+                    .padding(top = topGap)
                     .padding(start = (row.indentLevel * POETIC_INDENT_GRID_UNITS).gridUnitsAsDp()),
                 horizontalArrangement = Arrangement.spacedBy(VERSE_WORD_HORIZONTAL_GAP),
                 verticalArrangement = Arrangement.spacedBy(VERSE_WORD_VERTICAL_GAP),
