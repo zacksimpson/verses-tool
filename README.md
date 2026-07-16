@@ -6,6 +6,8 @@ Shows one verse a day, refreshed automatically each morning. Look up the verse f
 
 ---
 
+<img src="assets/images/example.png" alt="Verses app screenshots">
+
 ## Features
 
 * One Bible verse a day, cycling through a bundled reference list by day-of-year
