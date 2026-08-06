@@ -152,7 +152,7 @@ class VersesHomeScreen(sealedActivity: SealedLightActivity) :
                                     }
                                     if (mode.staleWarning) {
                                         LightText(
-                                            text = "Couldn't refresh — showing last saved verse.",
+                                            text = "Couldn't refresh. Showing last saved verse.",
                                             variant = LightTextVariant.Detail,
                                             modifier = Modifier.padding(top = 0.5f.gridUnitsAsDp()),
                                         )

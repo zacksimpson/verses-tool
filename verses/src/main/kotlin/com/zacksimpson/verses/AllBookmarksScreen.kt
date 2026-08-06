@@ -75,7 +75,7 @@ class AllBookmarksScreen(
                     Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
                         if (sorted.isEmpty()) {
                             LightText(
-                                text = "No bookmarks yet — long-press any verse to save one.",
+                                text = "No bookmarks yet. Long-press any verse to save one.",
                                 variant = LightTextVariant.Copy,
                                 modifier = Modifier.padding(horizontal = 1.5f.gridUnitsAsDp()),
                             )
