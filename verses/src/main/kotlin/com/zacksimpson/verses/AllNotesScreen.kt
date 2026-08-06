@@ -140,7 +140,7 @@ private fun NoteRow(note: VerseNote, onClick: () -> Unit) {
             ),
     ) {
         LightText(
-            text = "${note.reference}, ${formatDisplayDate(note.date)}",
+            text = "${note.reference} • ${formatRelativeDate(note.date)}",
             variant = LightTextVariant.Detail,
             modifier = Modifier.padding(bottom = 0.25f.gridUnitsAsDp()),
         )
