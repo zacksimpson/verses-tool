@@ -34,8 +34,10 @@ import kotlinx.coroutines.withContext
 
 class VerseActionsViewModel(
     private val repo: VerseNotesRepository,
+    private val bookmarksRepo: VerseBookmarksRepository,
 ) : LightViewModel<Unit>() {
     val notes = repo.notes.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+    val bookmarks = bookmarksRepo.bookmarks.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     fun addNote(date: String, reference: String, text: String, translation: Translation) {
         // NonCancellable: the caller calls goBack() right after this, which tears down
@@ -46,10 +48,20 @@ class VerseActionsViewModel(
             }
         }
     }
+
+    fun toggleBookmark(reference: String, text: String, translation: Translation) {
+        // Same NonCancellable reasoning as addNote above.
+        viewModelScope.launch {
+            withContext(NonCancellable) {
+                bookmarksRepo.toggleBookmark(reference, text, translation)
+            }
+        }
+    }
 }
 
-/** Long-press action sheet for a verse — Copy, Memorize, Add Notes, and (when notes already
- *  exist for this reference) View Notes — styled to match reminders-tool's ListActionsScreen. */
+/** Long-press action sheet for a verse — Copy, Memorize, Bookmark (or Remove Bookmark, when
+ *  already saved), Add Notes, and (when notes already exist for this reference) View Notes —
+ *  styled to match reminders-tool's ListActionsScreen. */
 class VerseActionsScreen(
     sealedActivity: SealedLightActivity,
     private val date: String,
@@ -62,7 +74,10 @@ class VerseActionsScreen(
         get() = VerseActionsViewModel::class.java
 
     override fun createViewModel(): VerseActionsViewModel =
-        VerseActionsViewModel(VerseNotesRepository(lightContext.dataStore))
+        VerseActionsViewModel(
+            VerseNotesRepository(lightContext.dataStore),
+            VerseBookmarksRepository(lightContext.dataStore),
+        )
 
     @Composable
     override fun Content() {
@@ -70,6 +85,8 @@ class VerseActionsScreen(
         val clipboardManager = LocalClipboardManager.current
         val notes by viewModel.notes.collectAsState()
         val hasNotesForVerse = notes.any { it.reference == reference }
+        val bookmarks by viewModel.bookmarks.collectAsState()
+        val isBookmarked = bookmarks.any { it.reference == reference }
 
         LightTheme(colors = themeColors) {
             SwipeBackContainer(onSwipeBack = { goBack(Unit) }) {
@@ -103,6 +120,13 @@ class VerseActionsScreen(
                                 // than leaving the sheet on the stack underneath.
                                 resultCallback = { goBack(Unit) },
                             )
+                        },
+                    )
+                    ActionRow(
+                        text = if (isBookmarked) "Remove Bookmark" else "Bookmark",
+                        onClick = {
+                            viewModel.toggleBookmark(reference, verseText, translation)
+                            goBack(Unit)
                         },
                     )
                     ActionRow(

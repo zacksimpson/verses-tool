@@ -1,7 +1,6 @@
 package com.zacksimpson.verses
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -11,10 +10,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.style.TextAlign
 import com.thelightphone.sdk.SealedLightActivity
 import com.thelightphone.sdk.SimpleLightScreen
 import com.thelightphone.sdk.ui.LightBarButton
+import com.thelightphone.sdk.ui.LightBottomBar
 import com.thelightphone.sdk.ui.LightIcons
 import com.thelightphone.sdk.ui.LightScrollView
 import com.thelightphone.sdk.ui.LightText
@@ -87,24 +86,20 @@ class ViewNoteScreen(
                         }
                     }
 
-                    LightText(
-                        text = "EDIT",
-                        variant = LightTextVariant.Button,
-                        align = TextAlign.Center,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable {
-                                navigateTo(
-                                    screenFactory = {
-                                        TextEditorScreen(it, TextEditorRequest(note.reference, note.text))
-                                    },
-                                    resultCallback = { text -> goBack(text) },
-                                )
-                            }
-                            .padding(
-                                horizontal = 1.5f.gridUnitsAsDp(),
-                                vertical = 1.8f.gridUnitsAsDp(),
+                    LightBottomBar(
+                        items = listOf(
+                            LightBarButton.Text(
+                                text = "EDIT",
+                                onClick = {
+                                    navigateTo(
+                                        screenFactory = {
+                                            TextEditorScreen(it, TextEditorRequest(note.reference, note.text))
+                                        },
+                                        resultCallback = { text -> goBack(text) },
+                                    )
+                                },
                             ),
+                        ),
                     )
                 }
             }

@@ -70,6 +70,10 @@ class SettingsScreen(sealedActivity: SealedLightActivity) : SimpleLightScreen<Un
                                     },
                                 )
                                 SettingsLinkRow(
+                                    label = "View Bookmarks",
+                                    onClick = { navigateTo(screenFactory = { AllBookmarksScreen(it) }) },
+                                )
+                                SettingsLinkRow(
                                     label = "View All Notes",
                                     onClick = { navigateTo(screenFactory = { AllNotesScreen(it) }) },
                                 )
