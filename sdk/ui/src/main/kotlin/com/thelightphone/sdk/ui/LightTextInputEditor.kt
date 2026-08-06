@@ -34,6 +34,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.thelightphone.lp3Keyboard.ui.*
+import com.thelightphone.lp3Keyboard.ui.viewmodel.EnQwertyLp3KeyboardViewModel
+import com.thelightphone.lp3Keyboard.ui.viewmodel.Lp3KeyboardViewModel
+import com.thelightphone.lp3Keyboard.ui.viewmodel.Lp3RepeatableKeyboardCallback
+import com.thelightphone.lp3Keyboard.ui.viewmodel.defaultEmojis
 import com.thelightphone.sdk.ui.keyboard.LightEmbeddedLp3Keyboard
 import com.thelightphone.sdk.ui.keyboard.TextInputKeyboardCallback
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -66,7 +70,7 @@ fun LightTextInputEditor(
         )
     }
 
-    val keyboardViewModel: Lp3KeyboardViewModel = viewModel<DefaultLp3KeyboardViewModel>(
+    val keyboardViewModel: Lp3KeyboardViewModel<*> = viewModel<EnQwertyLp3KeyboardViewModel<*>>(
         key = "LightTextInputEditor-$editorKey",
         factory = factory(keyboardCallback, keyboardOptionsFlow),
     )
@@ -99,7 +103,7 @@ fun LightTextInputEditor(
     state: TextFieldState,
     onSubmit: (CharSequence) -> Unit,
     onBack: () -> Unit,
-    viewModel: Lp3KeyboardViewModel,
+    viewModel: Lp3KeyboardViewModel<*>,
     modifier: Modifier = Modifier,
     submitLabel: String = "SUBMIT",
     submitIcon: LightIconConfiguration? = null,
@@ -239,16 +243,13 @@ private fun factory(
     object : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            return DefaultLp3KeyboardViewModel(
+            return EnQwertyLp3KeyboardViewModel<Unit>(
                 callback,
                 keyboardOptionsFlow = keyboardOptionsFlow,
                 optionsForLayout = {
-                    val showCloseButton = when (it) {
-                        EmojiLayout, is ExtendedCharKeyboard -> true
-                        CapsLockedLayout, LowerCaseLayout, NumberLayout, SymbolsLayout, UpperCaseLayout -> false
-                    }
+                    val showCloseButton = !it.isRootLayout
                     LayoutOptions(showCloseButton)
-                }
+                },
             ) as T
         }
 
@@ -279,5 +280,6 @@ fun defaultKeyboardOptions() = KeyboardOptions(
     defaultEmojis,
     displayReturn = true,
     displayVoice = true,
-    enableKeyAnimation = true
+    enableKeyAnimation = true,
+    swipeEnabled = false,
 )
