@@ -95,7 +95,7 @@ class AllNotesScreen(
                                 text = if (filterReference != null) {
                                     "No notes yet for this verse."
                                 } else {
-                                    "No notes yet — long-press any verse to add one."
+                                    "No notes yet. Long-press any verse to add one."
                                 },
                                 variant = LightTextVariant.Copy,
                                 modifier = Modifier.padding(horizontal = 1.5f.gridUnitsAsDp()),
@@ -140,7 +140,7 @@ private fun NoteRow(note: VerseNote, onClick: () -> Unit) {
             ),
     ) {
         LightText(
-            text = "${note.reference} — ${formatDisplayDate(note.date)}",
+            text = "${note.reference}, ${formatDisplayDate(note.date)}",
             variant = LightTextVariant.Detail,
             modifier = Modifier.padding(bottom = 0.25f.gridUnitsAsDp()),
         )
