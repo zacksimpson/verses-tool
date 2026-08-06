@@ -21,16 +21,15 @@ data class VerseBookmark(
     val createdAtMillis: Long,
 )
 
-/** Same fallback convention as VerseNote.resolvedTranslation(), for consistency. */
+/** same fallback convention as VerseNote.resolvedTranslation(), for consistency. */
 fun VerseBookmark.resolvedTranslation(): Translation = Translation.fromNameOrDefault(translation)
 
 private val BOOKMARKS_KEY = stringPreferencesKey("verse_bookmarks")
 
 /**
- * A bookmark is a toggle, not an appendable list like notes — a reference is either saved
- * or it isn't. Keyed by reference alone (no date field): unlike notes, which are
- * deliberately tied to a calendar day so a recurring day-of-year reference gets independent
- * entries, a bookmark's whole point is "save this passage," and there's only ever one.
+ * a bookmark is a toggle, not an appendable list like notes, a reference is either
+ * saved or it isn't. keyed by reference alone, no date field, since a bookmark's whole
+ * point is saving a passage and there's only ever one.
  */
 class VerseBookmarksRepository(private val dataStore: DataStore<Preferences>) {
     private val json = Json { ignoreUnknownKeys = true }
@@ -42,9 +41,9 @@ class VerseBookmarksRepository(private val dataStore: DataStore<Preferences>) {
         this[BOOKMARKS_KEY]?.let { raw -> runCatching { json.decodeFromString(serializer, raw) }.getOrNull() }
             ?: emptyList()
 
-    /** Adds a bookmark for [reference] if none exists yet, otherwise removes it — the same
-     *  method serves both the action sheet's toggle row and the detail screen's removal
-     *  button, since toggling an existing bookmark is exactly what removal is. */
+    /** adds a bookmark for [reference] if none exists, otherwise removes it. same method
+     *  serves both the toggle row and the removal button, since removing is just
+     *  toggling an existing one. */
     suspend fun toggleBookmark(reference: String, text: String, translation: Translation) {
         dataStore.edit { prefs ->
             val current = prefs.readBookmarks()

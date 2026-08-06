@@ -15,26 +15,19 @@ internal data class EsvPassageResponse(
 )
 
 /**
- * Pure parsing logic pulled out of [EsvApi] so it's unit testable without network access.
- * With include-verse-numbers=true, ESV's plain text already carries real structure we were
- * previously throwing away: each verse starts with an inline `[N]` marker, poetic lines are
- * real "\n" breaks indented in multiples of [POETRY_INDENT_STEP] spaces (requested via
- * indent-poetry-lines, see [EsvApi.fetchVerses]), and a verse beginning a new prose
- * paragraph has its `[N]` marker sitting at the start of a line (preceded by "\n") rather
- * than inline after the previous verse's text — the same signal a poetic verse's marker
- * always has too (poetry always starts a fresh line), which is harmless since a poetic
- * verse already gets its own row in PassageScreen regardless of startsNewParagraph.
+ * parsing logic pulled out of [EsvApi] so it's unit testable without network access.
+ * with include-verse-numbers=true, esv's text already carries real structure: each verse
+ * starts with an inline "[N]" marker, poetic lines are real newlines indented in multiples
+ * of [POETRY_INDENT_STEP] spaces, and a verse starting a new paragraph has its marker at
+ * the start of a line instead of inline after the previous verse.
  */
 internal object EsvTextParsing {
-    // Matches an "[N]" verse marker together with any whitespace immediately around it —
-    // group 1 is a leading newline (present when this verse starts a new line, whether a
-    // fresh paragraph or a poetic line), group 2 is the marker's own leading indent (used
-    // as the baseline when computing a poetic verse's relative indent levels), group 3 is
-    // the verse number itself.
+    // matches an [N] verse marker plus surrounding whitespace: group 1 is a leading
+    // newline, group 2 is the marker's own indent, group 3 is the verse number
     private val VERSE_MARKER = Regex("""(\n)?([ \t]*)\[(\d+)]\s*""")
 
-    // Matches indent-poetry-lines, which EsvApi requests explicitly rather than relying on
-    // ESV's default so this stays correct even if ESV changes its default later.
+    // matches the indent-poetry-lines value we request explicitly, so this stays
+    // correct even if esv changes its default
     private const val POETRY_INDENT_STEP = 4
 
     fun versesFromPassageText(raw: String): List<VerseSegment> {
@@ -62,9 +55,9 @@ internal object EsvTextParsing {
 }
 
 /**
- * Client for the ESV API. Requests real verse-number markers and fixed indent widths (see
- * [EsvTextParsing]) so a passage's paragraph and poetry structure survives into the app
- * instead of coming back as one flat block of text.
+ * client for the ESV API. requests real verse markers and fixed indent widths so a
+ * passage's paragraph and poetry structure survives instead of coming back as one flat
+ * block of text.
  */
 internal class EsvApi(private val apiKey: String) {
     private val client = createBibleApiHttpClient()
@@ -72,9 +65,8 @@ internal class EsvApi(private val apiKey: String) {
     suspend fun fetchVerseText(reference: String): Result<String> =
         fetchVerses(reference).mapCatching { verses -> joinVerseTexts(verses.map { it.text }) }
 
-    /** Same passage as [fetchVerseText], but keeping each verse's number and paragraph
-     *  structure attached rather than flattening to one string — lets the UI show verse
-     *  numbers and paragraph breaks for a range. */
+    /** same passage as [fetchVerseText] but keeps verse numbers and paragraph structure
+     *  instead of flattening to one string. */
     suspend fun fetchVerses(reference: String): Result<List<VerseSegment>> = runCatching {
         val encoded = URLEncoder.encode(reference, UTF_8.name())
         val response = client.get(
@@ -84,7 +76,7 @@ internal class EsvApi(private val apiKey: String) {
                 "&include-footnotes=false" +
                 "&include-verse-numbers=true" +
                 "&include-passage-references=false" +
-                // We attach "(ESV)" to the reference line ourselves instead — see VersesHomeScreen.
+                // we attach "(ESV)" to the reference line ourselves, see VersesHomeScreen
                 "&include-short-copyright=false" +
                 "&indent-using=space" +
                 "&indent-paragraphs=2" +

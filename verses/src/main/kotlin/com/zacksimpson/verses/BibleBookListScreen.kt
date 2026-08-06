@@ -26,7 +26,7 @@ import com.thelightphone.sdk.ui.LightTopBar
 import com.thelightphone.sdk.ui.LightTopBarCenter
 import com.thelightphone.sdk.ui.gridUnitsAsDp
 
-/** Second screen of the verse lookup flow — books in [testament], in canonical order. */
+/** second screen of the lookup flow, books in [testament], in canonical order. */
 class BibleBookListScreen(
     sealedActivity: SealedLightActivity,
     private val testament: Testament,

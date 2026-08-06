@@ -15,9 +15,9 @@ import com.thelightphone.sdk.ui.LightThemeController
 data class TextEditorRequest(val title: String, val initialValue: String = "")
 
 /**
- * Reusable multi-line text entry backed by the LightOS keyboard (LightTextInputEditor
- * defaults to multi-line). Returns the entered text as the screen result on submit, or
- * nothing if the user backs out. Ported from reminders-tool's TextEditorScreen.
+ * reusable multi-line text entry backed by the LightOS keyboard. returns the entered
+ * text as the result on submit, nothing if the user backs out. ported from
+ * reminders-tool.
  */
 class TextEditorScreen(
     sealedActivity: SealedLightActivity,
@@ -38,15 +38,11 @@ class TextEditorScreen(
                     keyboardOptionsFlow = keyboardOptions,
                     onSubmit = { goBack(it.toString()) },
                     onBack = { goBack(null) },
-                    // A fresh instance per push, so it keys each editor uniquely — see
-                    // reminders-tool's TextEditorScreen for why a fixed key would collide.
+                    // a fresh instance per push keys each editor uniquely, a fixed key would collide
                     editorKey = this@TextEditorScreen,
-                    // Smaller than the SDK's default Heading size (and smaller than Copy,
-                    // used elsewhere for notes) so more of a long note stays visible above
-                    // the embedded keyboard.
+                    // smaller than the sdk default so more of a long note stays visible above the keyboard
                     inputTextVariant = LightTextVariant.Paragraph,
-                    // Only capitalize a fresh note, not when editing existing text and the
-                    // cursor lands mid-sentence.
+                    // only capitalize a fresh note, not existing text where the cursor lands mid-sentence
                     initialCaps = request.initialValue.isBlank(),
                 )
             }

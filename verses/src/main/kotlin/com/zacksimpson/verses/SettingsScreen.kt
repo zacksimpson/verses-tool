@@ -31,10 +31,9 @@ class SettingsScreen(sealedActivity: SealedLightActivity) : SimpleLightScreen<Un
     @Composable
     override fun Content() {
         val themeColors by LightThemeController.colors.collectAsState()
-        // Read here (not in TranslationsSettingsScreen) so by the time someone actually taps
-        // the "Translations" row, this has had a moment to resolve past its first-frame
-        // initial value — passed down as constructor args, it lets that screen show the
-        // real current translation immediately instead of flashing a guessed default.
+        // read here, not in TranslationsSettingsScreen, so it's had a moment to resolve
+        // past its initial value by the time someone taps into it, passed down as
+        // constructor args to avoid a flash of a guessed default
         val prefs by lightContext.dataStore.data.collectAsState(initial = emptyPreferences())
 
         LightTheme(colors = themeColors) {
@@ -90,8 +89,8 @@ class SettingsScreen(sealedActivity: SealedLightActivity) : SimpleLightScreen<Un
     }
 }
 
-/** A settings row that's just a label leading to another screen — no current-value line.
- *  Shared with [AdvancedSettingsScreen], which is structured identically one level deeper. */
+/** a settings row that's just a label leading to another screen, no current-value line.
+ *  shared with [AdvancedSettingsScreen]. */
 @Composable
 internal fun SettingsLinkRow(label: String, onClick: () -> Unit) {
     LightText(
@@ -104,9 +103,8 @@ internal fun SettingsLinkRow(label: String, onClick: () -> Unit) {
     )
 }
 
-/** A settings row with its current value shown under the label — same label-over-value
- *  shape as ApiLogsScreen's StatRow, but clickable through to a picker instead of read-only.
- *  Shared with [TranslationsSettingsScreen]. */
+/** a settings row with its current value under the label, same shape as ApiLogsScreen's
+ *  StatRow but clickable through to a picker. shared with [TranslationsSettingsScreen]. */
 @Composable
 internal fun SettingsValueRow(label: String, value: String, onClick: () -> Unit) {
     Column(

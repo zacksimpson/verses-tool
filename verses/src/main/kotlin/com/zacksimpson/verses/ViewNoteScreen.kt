@@ -26,15 +26,11 @@ import com.thelightphone.sdk.ui.LightTopBarCenter
 import com.thelightphone.sdk.ui.gridUnitsAsDp
 
 /**
- * Read-only view of one saved note, reached from All Notes. The header title jumps to
- * the original verse (VerseForDateScreen for the note's date); EDIT is a fixed footer
- * below the scrollable note content — outside the scroll area, not its last item, so it
- * stays pinned to the bottom of the screen regardless of how short the note is — styled
- * to match reminders-native's DELETE row. EDIT pushes the existing [TextEditorScreen] and
- * forwards whatever it returns straight back up via goBack, so All Notes (which owns the
- * update call) doesn't need to know this screen exists in between — backing out without
- * editing calls goBack(null), which the SDK treats as "no result" and skips All Notes'
- * resultCallback entirely.
+ * read-only view of one saved note, reached from all notes. the header title jumps to
+ * the original verse. EDIT pushes [TextEditorScreen] and forwards whatever it returns
+ * back up via goBack, so all notes doesn't need to know this screen exists in between.
+ * backing out without editing calls goBack(null), which the sdk treats as no result and
+ * skips all notes' resultCallback entirely.
  */
 class ViewNoteScreen(
     sealedActivity: SealedLightActivity,

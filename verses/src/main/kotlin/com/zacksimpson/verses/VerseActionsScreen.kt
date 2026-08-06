@@ -40,8 +40,8 @@ class VerseActionsViewModel(
     val bookmarks = bookmarksRepo.bookmarks.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     fun addNote(date: String, reference: String, text: String, translation: Translation) {
-        // NonCancellable: the caller calls goBack() right after this, which tears down
-        // this ViewModel's scope — without this the write can get cancelled mid-flight.
+        // caller calls goBack() right after this, which tears down the scope, so
+        // without NonCancellable the write could get cancelled mid-flight
         viewModelScope.launch {
             withContext(NonCancellable) {
                 repo.addNote(date, reference, text, translation)
@@ -50,7 +50,7 @@ class VerseActionsViewModel(
     }
 
     fun toggleBookmark(reference: String, text: String, translation: Translation) {
-        // Same NonCancellable reasoning as addNote above.
+        // same reasoning as addNote above
         viewModelScope.launch {
             withContext(NonCancellable) {
                 bookmarksRepo.toggleBookmark(reference, text, translation)
@@ -59,9 +59,9 @@ class VerseActionsViewModel(
     }
 }
 
-/** Long-press action sheet for a verse — Copy, Memorize, Bookmark (or Remove Bookmark, when
- *  already saved), Add Notes, and (when notes already exist for this reference) View Notes —
- *  styled to match reminders-tool's ListActionsScreen. */
+/** long-press action sheet for a verse: copy, memorize, bookmark (or remove, when
+ *  already saved), add notes, and view notes when any exist. styled to match
+ *  reminders-tool's action sheet. */
 class VerseActionsScreen(
     sealedActivity: SealedLightActivity,
     private val date: String,
@@ -115,9 +115,9 @@ class VerseActionsScreen(
                         onClick = {
                             navigateTo(
                                 screenFactory = { MemorizeScreen(it, reference, verseText, translation) },
-                                // Ignores the result — just closes this sheet once Memorize is
-                                // backed out of, so returning lands on the verse itself rather
-                                // than leaving the sheet on the stack underneath.
+                                // ignores the result, just closes this sheet once memorize is
+                                // backed out of, so returning lands on the verse instead of
+                                // leaving the sheet underneath
                                 resultCallback = { goBack(Unit) },
                             )
                         },

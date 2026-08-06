@@ -1,14 +1,12 @@
 package com.zacksimpson.verses
 
 /**
- * Fetches verse text for whichever [Translation] is active, routing on its
- * [TranslationSource] rather than the translation itself — adding a new YouVersion-backed
- * translation only means adding a case to [Translation], not touching this file.
+ * fetches verse text for whichever [Translation] is active, routed by its
+ * [TranslationSource] rather than the translation itself, so a new youversion-backed
+ * translation only means a new case in [Translation].
  *
- * All backend clients are constructed lazily so a session that only ever uses one
- * translation (the common case) never pays for the others' HTTP clients — including the
- * two public domain ones, which are separate HelloAoApi instances (one per translation id)
- * even though they hit the same host.
+ * backend clients are built lazily so a session that only uses one translation never
+ * pays for the others' http clients.
  */
 internal class VerseFetcher {
     private val esvApiLazy = lazy { EsvApi(apiKey = BuildConfig.ESV_API_KEY) }
@@ -28,7 +26,7 @@ internal class VerseFetcher {
     fun isConfigured(translation: Translation): Boolean = when (translation.source) {
         is TranslationSource.Esv -> BuildConfig.ESV_API_KEY.isNotBlank()
         is TranslationSource.YouVersion -> BuildConfig.YOUVERSION_APP_KEY.isNotBlank()
-        // Both public domain providers are free and keyless — always configured.
+        // both public domain providers are free and keyless, always configured
         is TranslationSource.PublicDomain -> true
     }
 
@@ -39,7 +37,7 @@ internal class VerseFetcher {
         is TranslationSource.YouVersion ->
             "Add your YouVersion Platform app key to local.properties (youVersionAppKey=...) " +
                 "to use this tool. Get a free key at platform.youversion.com."
-        // isConfigured() is always true for this source, so this is never actually shown.
+        // isConfigured() is always true here, so this message never actually shows
         is TranslationSource.PublicDomain -> ""
     }
 
@@ -50,11 +48,8 @@ internal class VerseFetcher {
             is TranslationSource.PublicDomain -> helloAoApi(source.provider).fetchVerseText(reference)
         }
 
-    /** Same passage as [fetchVerseText], but with each verse's number and paragraph
-     *  structure kept alongside its text instead of flattened into one string — used by
-     *  the passage display screen so a multi-verse selection can show its verse numbers
-     *  and paragraph breaks. All four sources now parse real per-verse structure out of
-     *  their own response format (see HelloAoParsing, EsvTextParsing, YouVersionHtmlParsing). */
+    /** same passage as [fetchVerseText] but keeps each verse's number and paragraph
+     *  structure instead of flattening it, used by the passage screen. */
     suspend fun fetchVerses(translation: Translation, reference: String): Result<List<VerseSegment>> =
         when (val source = translation.source) {
             is TranslationSource.PublicDomain -> helloAoApi(source.provider).fetchVerses(reference)
@@ -62,10 +57,9 @@ internal class VerseFetcher {
             is TranslationSource.YouVersion -> youVersionApi.fetchVerses(source.versionId, reference)
         }
 
-    /** Only public domain text has no rate limit or storage restriction to protect, so
-     *  this is the only source a whole chapter may be fetched from — Esv/YouVersion fail
-     *  outright rather than silently fetching, enforcing "no continuous chapter browsing
-     *  in copyrighted translations" here regardless of what UI calls this. */
+    /** only public domain text has no rate limit or storage restriction to protect, so
+     *  it's the only source a whole chapter can be fetched from. esv and youversion fail
+     *  outright here, no continuous chapter browsing in copyrighted translations. */
     suspend fun fetchChapter(translation: Translation, book: String, chapter: Int): Result<BibleChapter> =
         when (val source = translation.source) {
             is TranslationSource.PublicDomain -> helloAoApi(source.provider).fetchChapter(book, chapter)

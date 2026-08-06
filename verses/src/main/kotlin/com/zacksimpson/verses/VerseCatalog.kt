@@ -1,12 +1,10 @@
 package com.zacksimpson.verses
 
 /**
- * Curated verse references shown one per day, cycling by day-of-year.
- * No Bible API offers an actual "verse of the day" feed — every implementation
- * (including API.Bible's own tutorial) works by picking from a list like this
- * and fetching the passage text live. Expand this list over time; the
- * selection logic in [VerseSelector] just cycles through however many entries
- * exist.
+ * curated verse references shown one per day, cycling by day-of-year. no bible api
+ * offers an actual verse-of-the-day feed, every implementation works by picking from a
+ * list like this and fetching the passage live. expand this list over time, [VerseSelector]
+ * just cycles through however many entries exist.
  */
 internal object VerseCatalog {
     val references: List<String> = listOf(

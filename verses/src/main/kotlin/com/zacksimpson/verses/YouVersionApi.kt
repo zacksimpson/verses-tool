@@ -13,20 +13,13 @@ internal data class YouVersionPassageResponse(
 )
 
 /**
- * Pure parsing logic pulled out of [YouVersionApi] so it's unit testable without network
- * access. `format=html` (unlike the flat `format=text`/default response, which throws away
- * verse numbers and all line structure) returns a shallow, single-level-nested markup:
- * each top-level `<div class="...">` is one row — `"d"` a section heading (skipped, its
- * text isn't surfaced), `"p"` (or any other non-"q*" class) a prose paragraph, `"q1"`/`"q2"`/
- * `"q3"` (or plain `"q"`, seen on NASB) a poetry line at that indent level. A verse's start
- * is marked with an empty `<span class="yv-v" v="N"></span>`, immediately followed by a
- * redundant visible `<span class="yv-vlbl">N</span>` (stripped here, since PassageScreen
- * renders its own verse numbers); a div with no yv-v span at all is a continuation line of
- * whatever verse most recently started (e.g. a poetic verse's second line, which YouVersion
- * gives its own div). A `<div class="p">` groups every verse of one paragraph together, so
- * only the first verse-marker inside a *prose* div actually starts a new paragraph — poetic
- * divs mark every single verse this way too, which is harmless since a poetic verse always
- * gets its own row in PassageScreen regardless of startsNewParagraph.
+ * parsing logic pulled out of [YouVersionApi] so it's unit testable without network access.
+ * format=html gives shallow markup: each top-level div is one row, "d" is a heading
+ * (skipped), "p" a prose paragraph, "q1"/"q2"/"q3" (or plain "q") a poetry line at that
+ * indent level. a verse starts with an empty yv-v span followed by a redundant visible
+ * label span, stripped here since PassageScreen draws its own verse numbers. a div with
+ * no yv-v span is a continuation of whatever verse most recently started. only the first
+ * verse marker inside a prose div actually starts a new paragraph.
  */
 internal object YouVersionHtmlParsing {
     private val DIV_REGEX = Regex("""<div class="([a-zA-Z0-9]+)">(.*?)</div>""", RegexOption.DOT_MATCHES_ALL)
@@ -68,8 +61,8 @@ internal object YouVersionHtmlParsing {
         return segments
     }
 
-    /** Splits a div's inner HTML at each yv-v verse-start span — a div with none at all
-     *  (a continuation line) comes back as a single chunk with a null verse number. */
+    /** splits a div's inner html at each yv-v span. a div with none comes back as one
+     *  chunk with a null verse number. */
     private fun splitByVerseMarkers(inner: String): List<Pair<Int?, String>> {
         val matches = VERSE_START_REGEX.findAll(inner).toList()
         if (matches.isEmpty()) return listOf(null to inner)
@@ -85,10 +78,8 @@ internal object YouVersionHtmlParsing {
 }
 
 /**
- * Client for the YouVersion Platform REST API (used for NIV/NASB), hit directly with
- * Ktor rather than their official Kotlin SDK — the SDK artifact isn't on the Light SDK
- * plugin's dependency allowlist, but Ktor already is, and this is a thin enough API that
- * a raw client is no more code than wrapping the SDK would have been.
+ * client for the YouVersion Platform REST API (NIV/NASB), hit directly with ktor instead
+ * of their kotlin SDK, which isn't on the plugin's dependency allowlist.
  */
 internal class YouVersionApi(private val appKey: String) {
     private val client = createBibleApiHttpClient()
@@ -96,9 +87,8 @@ internal class YouVersionApi(private val appKey: String) {
     suspend fun fetchVerseText(versionId: Int, reference: String): Result<String> =
         fetchVerses(versionId, reference).mapCatching { verses -> joinVerseTexts(verses.map { it.text }) }
 
-    /** Same passage as [fetchVerseText], but keeping each verse's number and paragraph
-     *  structure attached rather than flattening to one string — lets the UI show verse
-     *  numbers and paragraph breaks for a range. */
+    /** same passage as [fetchVerseText] but keeps verse numbers and paragraph structure
+     *  instead of flattening to one string. */
     suspend fun fetchVerses(versionId: Int, reference: String): Result<List<VerseSegment>> = runCatching {
         val passageId = UsfmReference.toPassageId(reference)
         val response = client.get(

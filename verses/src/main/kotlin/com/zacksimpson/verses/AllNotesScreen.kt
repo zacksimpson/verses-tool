@@ -49,14 +49,12 @@ class AllNotesViewModel(
 }
 
 /**
- * Every saved note, most recent first, each shown alongside its verse reference and
- * date. Tapping a note opens a read-only ViewNoteScreen; its EDIT button is what reaches
- * TextEditorScreen. ViewNoteScreen forwards TextEditorScreen's result straight back here,
- * so this is still the only place that calls updateNote.
+ * every saved note, most recent first, shown with its verse reference and date. tapping
+ * opens a read-only ViewNoteScreen, its EDIT button reaches TextEditorScreen and forwards
+ * the result back here, so this is still the only place that calls updateNote.
  *
- * [filterReference], when set, restricts the list to notes on that one verse — this is
- * how VerseActionsScreen's "View Notes" row reuses this screen instead of duplicating the
- * list/row/navigation logic for a single-verse view.
+ * [filterReference], when set, restricts the list to one verse, how VerseActionsScreen's
+ * "View Notes" row reuses this screen instead of duplicating the list logic.
  */
 class AllNotesScreen(
     sealedActivity: SealedLightActivity,

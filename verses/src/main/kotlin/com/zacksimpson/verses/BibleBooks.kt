@@ -5,12 +5,10 @@ enum class Testament(val displayName: String) {
     NEW("New Testament"),
 }
 
-/** One of the 66 Protestant canon books, in canonical (Old Testament then New Testament)
- *  order, with per-chapter verse counts — standard KJV/BSB versification, sourced once from
- *  bible.helloao.org's complete.json and baked in here so the chapter/verse pickers never
- *  need a network round trip just to know how many verses a chapter has. Names match how
- *  books are already referred to elsewhere in this app (VerseCatalog, UsfmReference) —
- *  "Psalm" singular, not "Psalms", to match that existing convention. */
+/** one of the 66 protestant canon books, in canonical order, with per-chapter verse
+ *  counts, standard kjv/bsb versification sourced from bible.helloao.org's complete.json
+ *  and baked in here so the pickers never need a network round trip. names match how
+ *  books are already referred to elsewhere ("Psalm" singular, not "Psalms"). */
 internal data class BibleBook(
     val name: String,
     val testament: Testament,
@@ -21,7 +19,7 @@ internal data class BibleBook(
 
 internal object BibleBooks {
     val all: List<BibleBook> = listOf(
-        // Old Testament
+        // old testament
         BibleBook("Genesis", Testament.OLD, listOf(31, 25, 24, 26, 32, 22, 24, 22, 29, 32, 32, 20, 18, 24, 21, 16, 27, 33, 38, 18, 34, 24, 20, 67, 34, 35, 46, 22, 35, 43, 55, 32, 20, 31, 29, 43, 36, 30, 23, 23, 57, 38, 34, 34, 28, 34, 31, 22, 33, 26)),
         BibleBook("Exodus", Testament.OLD, listOf(22, 25, 22, 31, 23, 30, 25, 32, 35, 29, 10, 51, 22, 31, 27, 36, 16, 27, 25, 26, 36, 31, 33, 18, 40, 37, 21, 43, 46, 38, 18, 35, 23, 35, 35, 38, 29, 31, 43, 38)),
         BibleBook("Leviticus", Testament.OLD, listOf(17, 16, 17, 35, 19, 30, 38, 36, 24, 20, 47, 8, 59, 57, 33, 34, 16, 30, 37, 27, 24, 33, 44, 23, 55, 46, 34)),
@@ -61,7 +59,7 @@ internal object BibleBooks {
         BibleBook("Haggai", Testament.OLD, listOf(15, 23)),
         BibleBook("Zechariah", Testament.OLD, listOf(21, 13, 10, 14, 11, 15, 14, 23, 17, 12, 17, 14, 9, 21)),
         BibleBook("Malachi", Testament.OLD, listOf(14, 17, 18, 6)),
-        // New Testament
+        // new testament
         BibleBook("Matthew", Testament.NEW, listOf(25, 23, 17, 25, 48, 34, 29, 34, 38, 42, 30, 50, 58, 36, 39, 28, 26, 34, 30, 34, 46, 46, 38, 51, 46, 75, 66, 20)),
         BibleBook("Mark", Testament.NEW, listOf(45, 28, 35, 41, 43, 56, 36, 38, 48, 52, 32, 44, 37, 72, 46, 20)),
         BibleBook("Luke", Testament.NEW, listOf(80, 52, 38, 44, 39, 49, 50, 56, 62, 42, 54, 59, 35, 35, 32, 31, 36, 43, 48, 47, 38, 71, 55, 53)),

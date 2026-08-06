@@ -21,15 +21,14 @@ import kotlin.math.abs
 private val EDGE_WIDTH = 30.dp
 private val DRAG_THRESHOLD = 80.dp
 
-// Matches LightTopBar's own TOPBAR_HEIGHT_UNITS. Every screen that uses this container
-// puts a LightTopBar (with its own back button) at the top, so the edge strip below
-// starts right where that bar ends — see the comment above the Box for why.
+// matches LightTopBar's own height. every screen using this puts a top bar with a back
+// button, so the edge strip below starts right where that bar ends
 private const val TOP_BAR_HEIGHT_UNITS = 3f
 
 /**
- * Left-edge swipe-to-go-back gesture. LightOS doesn't provide an OS-level gesture-nav
- * back-swipe, so this reimplements it: edge-only start, horizontal-dominant drag, single
- * trigger past a threshold. Ported from reminders-tool's SwipeBackContainer.
+ * left-edge swipe-to-go-back. LightOS has no os-level back-swipe gesture, so this
+ * reimplements it: edge-only start, horizontal-dominant drag, single trigger past a
+ * threshold. ported from reminders-tool.
  */
 @Composable
 fun SwipeBackContainer(
@@ -44,12 +43,10 @@ fun SwipeBackContainer(
         content()
 
         if (enabled) {
-            // Starts below the top bar rather than at y=0: the strip's full-height
-            // version used to overlap the top bar's own back button, and — since this
-            // Box paints on top so it can win priority over content's own scroll/drag
-            // handlers — it would intermittently steal taps meant for that button,
-            // requiring several presses to register. Excluding that band instead of
-            // reordering z-index keeps the swipe gesture working everywhere else.
+            // starts below the top bar instead of y=0. a full-height strip used to
+            // overlap the back button and steal its taps, since this box paints on top
+            // to win priority over content's own scroll/drag handlers. excluding that
+            // band keeps the swipe working everywhere else
             Box(
                 modifier = Modifier
                     .align(Alignment.CenterStart)

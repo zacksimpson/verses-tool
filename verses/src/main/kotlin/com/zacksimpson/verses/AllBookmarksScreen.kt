@@ -38,12 +38,10 @@ class AllBookmarksViewModel(
 }
 
 /**
- * Every saved bookmark, most recent first. Tapping one opens ViewBookmarkScreen, whose
- * "Remove Bookmark" button writes straight to the same DataStore-backed repository this
- * screen reads from — no resultCallback needed, since `bookmarks` is a reactive Flow and
- * just reflects the removal automatically once we're back here. Unlike AllNotesScreen,
- * there's no filterReference variant: a bookmark's toggle state is already visible directly
- * on the long-press action sheet, so there's no need for a single-verse sub-view.
+ * every saved bookmark, most recent first. tapping one opens ViewBookmarkScreen, whose
+ * remove button writes straight to the same repository this screen reads from, so no
+ * resultCallback is needed since bookmarks is a reactive flow. unlike all notes, there's
+ * no filterReference variant, a bookmark's state is already visible on the action sheet.
  */
 class AllBookmarksScreen(
     sealedActivity: SealedLightActivity,

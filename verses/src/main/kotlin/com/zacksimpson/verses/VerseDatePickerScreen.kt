@@ -51,11 +51,10 @@ private val MONTH_NAMES = listOf(
 private val DAY_HEADERS = listOf("S", "M", "T", "W", "T", "F", "S")
 
 /**
- * Calendar month picker for browsing past verses. Always opens on the current month.
- * Unlike reminders-tool's DatePickerScreen, this never allows navigating into the
- * future: the forward chevron is a no-op once viewing the current month, and any day
- * after today within the current month is rendered blank (same treatment as the
- * leading before-the-1st cells) rather than shown as a disabled/grayed-out number.
+ * calendar month picker for browsing past verses. always opens on the current month.
+ * unlike reminders-tool's picker, this never allows navigating into the future: the
+ * forward chevron is a no-op on the current month, and any future day is rendered
+ * blank instead of grayed out.
  */
 class VerseDatePickerScreen(
     sealedActivity: SealedLightActivity,
@@ -100,8 +99,7 @@ class VerseDatePickerScreen(
         val rows = cells.chunked(7).map { row -> (row + List(7) { null }).take(7) }
 
         LightTheme(colors = themeColors) {
-            // Modal-style (X to dismiss, no back chevron) — swipe-back is intentionally
-            // off so there's exactly one way out, matching the affordance shown.
+            // modal style, X dismisses. swipe-back is off so there's one way out
             SwipeBackContainer(enabled = false, onSwipeBack = { goBack(Unit) }) {
             Box(
                 modifier = Modifier
@@ -201,8 +199,8 @@ class VerseDatePickerScreen(
     }
 }
 
-/** Bold day-of-week header letter — LightTextVariant has no weight override, so this
- *  goes straight to Text at the same 30sp size the day-number cells use. */
+/** bold day-of-week header letter. LightTextVariant has no weight override, so this
+ *  goes straight to Text at the same size the day cells use. */
 @Composable
 private fun DayHeaderText(text: String) {
     Text(

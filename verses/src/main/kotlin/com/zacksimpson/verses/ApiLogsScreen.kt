@@ -24,19 +24,14 @@ import com.thelightphone.sdk.ui.LightTopBar
 import com.thelightphone.sdk.ui.LightTopBarCenter
 import com.thelightphone.sdk.ui.gridUnitsAsDp
 
-/** Read-only view of the app's own tracked usage against each copyrighted translation's API,
- *  for gauging headroom before making future UX calls on those translations (see
- *  LookupRateLimiter). Public domain translations (KJV, BSB) are never rate-limited or
- *  quota-bound, so they're left off entirely.
+/** read-only view of this app's own usage against each copyrighted translation's api.
+ *  public domain translations are never rate-limited, so they're left off.
  *
- *  Deliberately shows this device's own enforced ceiling ([DAILY_LOOKUP_LIMIT]), not the
- *  provider's published API-key limit (ESV's real 5,000/day, for instance) — the two are easy
- *  to conflate, but this app's own, much smaller backstop always kicks in long before a
- *  device could ever approach the provider's real number. Showing the provider's figure next
- *  to "Calls Today" would read as personal headroom ("I have up to 5,000 left"), when the
- *  actual ceiling this device enforces is 100. Verses Cached has no denominator at all for the
- *  same reason: the app has no enforced cap there either, just a single once-a-day cache slot
- *  — a provider figure would be equally misleading. */
+ *  shows this device's own enforced ceiling ([DAILY_LOOKUP_LIMIT]), not the provider's
+ *  published limit. the two are easy to conflate, but our own backstop is much smaller
+ *  and kicks in first, so showing the provider's number next to "Calls Today" would read
+ *  as more headroom than actually exists. verses cached has no denominator for the same
+ *  reason, there's no enforced cap there either, just one cache slot a day. */
 class ApiLogsScreen(sealedActivity: SealedLightActivity) : SimpleLightScreen<Unit>(sealedActivity) {
 
     @Composable
@@ -91,14 +86,12 @@ class ApiLogsScreen(sealedActivity: SealedLightActivity) : SimpleLightScreen<Uni
     }
 }
 
-/** "12 / 100" when a limit applies, otherwise just "12" — used for both rows on this screen.
- *  No thousands separators, matching LightOS's own stat rows (e.g. Device Storage's
- *  "65051 / 93691 MB"). */
+/** "12 / 100" when a limit applies, otherwise just "12". no thousands separators,
+ *  matching LightOS's own stat rows. */
 internal fun formatAgainstLimit(value: Int, limit: Int?): String =
     if (limit != null) "$value / $limit" else "$value"
 
-/** Static label-over-value display row — same shape as every Light SDK tool's settings rows
- *  (label: Paragraph, value: Heading, same horizontal/vertical padding), just without a click
+/** static label-over-value row, same shape as a settings row but without a click
  *  target since this screen is read-only. */
 @Composable
 private fun StatRow(label: String, value: String) {

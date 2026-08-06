@@ -37,11 +37,9 @@ import com.thelightphone.sdk.ui.LightTopBarCenter
 import com.thelightphone.sdk.ui.gridUnitsAsDp
 import kotlinx.coroutines.launch
 
-/** Shared by Settings' "Translation" (daily verse, [VersePreferences.SELECTED_TRANSLATION])
- *  and "Fallback Translation" (verse lookup default, [VersePreferences.LOOKUP_TRANSLATION])
- *  rows — same selection UI, differing only in which preference they read/write and what
- *  the top bar calls itself. Both currently offer every translation ([options] defaults
- *  to all of them), but a caller can pass a narrower list. */
+/** shared by Settings' "Translation" and "Fallback Translation" rows, same selection UI,
+ *  differing only in which preference they read/write and the top bar title. both offer
+ *  every translation by default, but a caller can pass a narrower list. */
 class TranslationPickerScreen(
     sealedActivity: SealedLightActivity,
     private val title: String,
@@ -55,15 +53,11 @@ class TranslationPickerScreen(
         val themeColors by LightThemeController.colors.collectAsState()
         val scope = rememberCoroutineScope()
         val prefs by lightContext.dataStore.data.collectAsState(initial = null)
-        // Null (nothing highlighted) rather than falling back to some guessed default while
-        // prefs is still loading — a fallback here would need to match whatever currentSelection
-        // would itself resolve to for an empty/missing preference, which differs per caller
-        // (ESV for the daily-verse picker, KJV for the lookup-fallback picker) and isn't
-        // knowable generically from here.
+        // null (nothing highlighted) instead of guessing a default while prefs is still
+        // loading, the right fallback differs per caller and isn't knowable generically here
         val selected = prefs?.let(currentSelection)
-        // Guards against a fast double-tap (or tapping two rows before the first
-        // selection's coroutine finishes) launching two goBack() calls — the second one
-        // would pop whatever screen is now on top, not just be a no-op.
+        // guards against a fast double-tap firing two goBack() calls, the second would
+        // pop whatever screen is now on top
         var isSelecting by remember { mutableStateOf(false) }
 
         LightTheme(colors = themeColors) {
@@ -122,11 +116,9 @@ private fun TranslationRow(translation: Translation, isSelected: Boolean, onClic
             text = translation.abbreviation,
             variant = LightTextVariant.Heading,
         )
-        // Drawn manually rather than via LightText's underline flag, which renders a
-        // hairline too thin to read as a selection indicator — mirrors the thicker bar
-        // reminders-native draws under a selected date in DatePickerScreen.kt.
-        // IntrinsicSize.Max sizes this column to the text's natural (unwrapped) width,
-        // so the bar below tracks the text instead of stretching across the row.
+        // drawn manually since LightText's underline flag renders too thin to read as a
+        // selection indicator. IntrinsicSize.Max keeps the bar tracking the text's width
+        // instead of stretching across the row
         Column(modifier = Modifier.width(IntrinsicSize.Max)) {
             LightText(
                 text = translation.displayName,

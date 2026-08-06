@@ -1,12 +1,12 @@
 package com.zacksimpson.verses
 
 /**
- * Converts VerseCatalog's "Book Chapter:Verse[-Verse]" references into YouVersion
- * passage IDs ("BOOK.chapter.verse" / "BOOK.chapter.verse-verse"). ESV's API takes
- * natural-language references directly, so this is only needed for YouVersion.
+ * converts VerseCatalog's "Book Chapter:Verse[-Verse]" references into youversion
+ * passage ids. esv takes natural-language references directly, so this is only needed
+ * for youversion.
  *
- * Range syntax is the short form confirmed against the live API — "EPH.2.8-9", not
- * "EPH.2.8-EPH.2.9" — which matches VerseCatalog anyway since none of its ranges cross
+ * range syntax is the short form confirmed against the live api, "EPH.2.8-9" not
+ * "EPH.2.8-EPH.2.9", which matches VerseCatalog anyway since none of its ranges cross
  * a chapter boundary.
  */
 internal object UsfmReference {
@@ -90,14 +90,13 @@ internal object UsfmReference {
         return if (endVerse.isEmpty()) "$code.$chapter.$verse" else "$code.$chapter.$verse-$endVerse"
     }
 
-    /** Looks up a book name's USFM code directly, for callers that already have a book
-     *  name and chapter number rather than a full "Book Chapter:Verse" reference. */
+    /** looks up a book's usfm code directly, for callers that already have a book name
+     *  and chapter instead of a full reference. */
     fun bookCode(bookName: String): String =
         BOOK_CODES[bookName] ?: error("Unknown book name '$bookName'")
 
-    /** Splits a USFM passage id (from [toPassageId]) into its book/chapter/verse-range
-     *  parts — e.g. "JHN.3.16" or "JHN.3.16-18". Generic parsing, not tied to any one
-     *  backend's response format, so any client can use it to know a range's bounds. */
+    /** splits a usfm passage id into its book/chapter/verse-range parts, e.g. "JHN.3.16"
+     *  or "JHN.3.16-18". generic parsing, not tied to any one backend. */
     fun parseRange(passageId: String): PassageRange {
         val (bookCode, chapterPart, versePart) = passageId.split(".")
         val (start, end) = if ("-" in versePart) {

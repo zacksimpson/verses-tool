@@ -35,12 +35,9 @@ class VersesViewModel(
     private val _uiState = MutableStateFlow<VerseUiState>(VerseUiState.Loading)
     val uiState: StateFlow<VerseUiState> = _uiState.asStateFlow()
 
-    // Only paints the cache immediately, if there is one — deciding whether it's stale and
-    // needs a re-fetch is onScreenShow's job below. onScreenShow always fires right after
-    // this ViewModel is constructed (the SDK evaluates the lazy `viewModel` property and
-    // immediately calls onScreenShow on it), so onScreenShow joins this job before doing
-    // anything — otherwise the two coroutines race with no ordering guarantee, and a stale
-    // cache-paint landing after a fresh fetch already completed would overwrite it.
+    // paints the cache immediately if there is one, staleness check happens in
+    // onScreenShow below. onScreenShow joins this job first so the two coroutines don't
+    // race and overwrite a fresh fetch with a stale paint
     private val initialLoadJob: Job = viewModelScope.launch(Dispatchers.IO) {
         showCachedStateIfAvailable()
     }
@@ -59,9 +56,8 @@ class VersesViewModel(
         val cachedRef = prefs[VersePreferences.CACHED_REFERENCE]
         val cachedText = prefs[VersePreferences.CACHED_TEXT]
 
-        // Only show the cache immediately if it matches the current translation — a
-        // mismatch (translation was switched since the last cache write) gets resolved
-        // by onScreenShow's refreshIfStale instead of flashing the old translation's text.
+        // only show the cache if it matches the current translation, a mismatch gets
+        // resolved by refreshIfStale instead of flashing the old translation's text
         if (cachedRef != null && cachedText != null && prefs.cachedTranslation() == translation) {
             setState(VerseUiState.Loaded(reference = cachedRef, text = cachedText, translation = translation))
         }
@@ -94,9 +90,8 @@ class VersesViewModel(
                     p[VersePreferences.CACHED_TEXT] = text
                     p[VersePreferences.CACHED_TRANSLATION] = translation.name
                 }
-                // Counted here too (not just the manual lookup flows) so Settings → Advanced
-                // → View API Logs reflects every real API call, not just lookups — a no-op
-                // for public domain translations, which LookupRateLimiter never tracks.
+                // counted here too, not just manual lookups, so API Logs reflects every
+                // real call. no-op for public domain translations
                 LookupRateLimiter(dataStore).recordLookup(translation)
                 setState(VerseUiState.Loaded(reference = reference, text = text, translation = translation))
             },
@@ -106,10 +101,9 @@ class VersesViewModel(
         )
     }
 
-    /** Falls back to whatever is cached — regardless of date or translation — rather than
-     *  a bare error, as long as something is cached; labeled with [cachedTranslation]
-     *  (what's actually in the cache), not the currently-selected translation, so a
-     *  fallback after a translation switch never gets mislabeled. */
+    /** falls back to whatever is cached instead of a bare error, labeled with
+     *  [cachedTranslation] (what's actually in the cache) so it never gets mislabeled
+     *  after a translation switch. */
     private suspend fun showCachedOrError(
         existingRef: String?,
         existingText: String?,

@@ -1,11 +1,9 @@
 package com.zacksimpson.verses
 
-/** Which backend a [Translation] is fetched through — lets [VerseFetcher] branch on the
- *  API shape (ESV vs. YouVersion) instead of on each individual translation, so adding a
- *  new YouVersion-backed translation only means adding an enum case below. Also carries
- *  the caching/usage note shown in Copyright Info, since that's a property of the
- *  backend (how it's fetched/cached), not of any one translation — NIV and NASB share
- *  the same YouVersion note rather than repeating it.
+/** which backend a [Translation] is fetched through, lets [VerseFetcher] branch on the
+ *  api shape instead of each individual translation, so a new youversion-backed
+ *  translation only means a new enum case below. also carries the caching note shown in
+ *  copyright info, since that's a property of the backend, not any one translation.
  */
 sealed interface TranslationSource {
     val usageNote: String
@@ -23,11 +21,9 @@ sealed interface TranslationSource {
             "same way as above."
     }
 
-    /** Public domain text — unlike Esv/YouVersion, has no rate limit or storage restriction
-     *  of any kind, so it's the only source that supports fetching a whole chapter rather
-     *  than one passage at a time (see VerseFetcher.fetchChapter). Both public domain
-     *  translations come from bible.helloao.org, just under different translation ids —
-     *  see [PublicDomainProvider.translationId]. */
+    /** public domain text, unlike esv/youversion has no rate limit or storage
+     *  restriction, so it's the only source that supports fetching a whole chapter.
+     *  both providers come from bible.helloao.org under different translation ids. */
     data class PublicDomain(val provider: PublicDomainProvider) : TranslationSource {
         override val usageNote = provider.usageNote
     }
@@ -104,8 +100,8 @@ enum class Translation(
     companion object {
         val DEFAULT = ESV
 
-        /** Cached preference values predate this feature and won't have a stored
-         *  translation at all — treat that as ESV since it was the only option then. */
+        /** old cached preferences predate this feature and have no stored translation,
+         *  treat that as ESV since it was the only option then. */
         fun fromNameOrDefault(name: String?): Translation =
             name?.let { stored -> entries.firstOrNull { it.name == stored } } ?: DEFAULT
     }
