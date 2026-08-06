@@ -9,6 +9,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import com.thelightphone.sdk.SealedLightActivity
 import com.thelightphone.sdk.SimpleLightScreen
@@ -24,42 +28,37 @@ import com.thelightphone.sdk.ui.LightThemeTokens
 import com.thelightphone.sdk.ui.LightTopBar
 import com.thelightphone.sdk.ui.LightTopBarCenter
 import com.thelightphone.sdk.ui.gridUnitsAsDp
+import kotlinx.coroutines.launch
 
 /**
- * Read-only view of one saved note, reached from All Notes. The header title jumps to
- * the original verse (VerseForDateScreen for the note's date); EDIT is a fixed footer
- * below the scrollable note content — outside the scroll area, not its last item, so it
- * stays pinned to the bottom of the screen regardless of how short the note is — styled
- * to match reminders-native's DELETE row. EDIT pushes the existing [TextEditorScreen] and
- * forwards whatever it returns straight back up via goBack, so All Notes (which owns the
- * update call) doesn't need to know this screen exists in between — backing out without
- * editing calls goBack(null), which the SDK treats as "no result" and skips All Notes'
- * resultCallback entirely.
+ * Read-only view of one saved bookmark, reached from All Bookmarks. Simpler than
+ * ViewNoteScreen: no text to edit, so REMOVE BOOKMARK writes directly to the repository
+ * itself rather than handing a result back up through a resultCallback — there's no
+ * intermediate editor screen in the loop, just one direct action. All Bookmarks' own list
+ * is a reactive Flow, so it reflects the removal automatically once we're back there.
  */
-class ViewNoteScreen(
+class ViewBookmarkScreen(
     sealedActivity: SealedLightActivity,
-    private val note: VerseNote,
-) : SimpleLightScreen<String>(sealedActivity) {
+    private val bookmark: VerseBookmark,
+) : SimpleLightScreen<Unit>(sealedActivity) {
 
     @Composable
     override fun Content() {
         val themeColors by LightThemeController.colors.collectAsState()
+        val scope = rememberCoroutineScope()
+        val repo = remember { VerseBookmarksRepository(lightContext.dataStore) }
+        var isRemoving by remember { mutableStateOf(false) }
 
         LightTheme(colors = themeColors) {
-            SwipeBackContainer(onSwipeBack = { goBack(null) }) {
+            SwipeBackContainer(onSwipeBack = { goBack(Unit) }) {
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
                         .background(LightThemeTokens.colors.background),
                 ) {
                     LightTopBar(
-                        leftButton = LightBarButton.LightIcon(LightIcons.BACK, onClick = { goBack(null) }),
-                        center = LightTopBarCenter.Text(
-                            text = note.reference,
-                            onClick = {
-                                navigateTo(screenFactory = { VerseForDateScreen(it, note.date) })
-                            },
-                        ),
+                        leftButton = LightBarButton.LightIcon(LightIcons.BACK, onClick = { goBack(Unit) }),
+                        center = LightTopBarCenter.Text(bookmark.reference),
                         modifier = Modifier.padding(bottom = 1f.gridUnitsAsDp()),
                     )
 
@@ -73,14 +72,13 @@ class ViewNoteScreen(
                                     vertical = 1.5f.gridUnitsAsDp(),
                                 ),
                             ) {
-                                LightText(
-                                    text = formatDisplayDate(note.date),
-                                    variant = LightTextVariant.Detail,
+                                VerseText(
+                                    text = bookmark.text,
                                     modifier = Modifier.padding(bottom = 0.5f.gridUnitsAsDp()),
                                 )
                                 LightText(
-                                    text = note.text,
-                                    variant = LightTextVariant.Paragraph,
+                                    text = "(${bookmark.resolvedTranslation().abbreviation})",
+                                    variant = LightTextVariant.Copy,
                                 )
                             }
                         }
@@ -89,14 +87,19 @@ class ViewNoteScreen(
                     LightBottomBar(
                         items = listOf(
                             LightBarButton.Text(
-                                text = "EDIT",
+                                text = "REMOVE BOOKMARK",
                                 onClick = {
-                                    navigateTo(
-                                        screenFactory = {
-                                            TextEditorScreen(it, TextEditorRequest(note.reference, note.text))
-                                        },
-                                        resultCallback = { text -> goBack(text) },
-                                    )
+                                    if (!isRemoving) {
+                                        isRemoving = true
+                                        scope.launch {
+                                            repo.toggleBookmark(
+                                                bookmark.reference,
+                                                bookmark.text,
+                                                bookmark.resolvedTranslation(),
+                                            )
+                                            goBack(Unit)
+                                        }
+                                    }
                                 },
                             ),
                         ),
