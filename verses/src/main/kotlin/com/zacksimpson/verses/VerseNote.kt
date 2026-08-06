@@ -19,22 +19,21 @@ data class VerseNote(
     val reference: String,
     val text: String,
     val createdAtMillis: Long,
-    // Nullable/additive so notes stored before this field existed keep deserializing —
-    // resolvedTranslation() below is how callers should read it, not this directly.
+    // nullable so notes stored before this field existed still deserialize, read via
+    // resolvedTranslation() below, not directly
     val translation: String? = null,
 )
 
-/** Notes predating this field don't know their translation — same fallback as
- *  Translation.fromNameOrDefault, applied here since VerseNote stores the raw name. */
+/** notes predating this field don't know their translation, same fallback as
+ *  Translation.fromNameOrDefault since VerseNote stores the raw name. */
 fun VerseNote.resolvedTranslation(): Translation = Translation.fromNameOrDefault(translation)
 
 private val NOTES_KEY = stringPreferencesKey("verse_notes")
 
 /**
- * Free-text notes on a verse-of-the-day date, keyed by date rather than reference — if
- * the day-of-year cycle ever repeats a reference in a future year, that occurrence gets
- * its own independent notes rather than reusing old ones. A single date can have
- * multiple notes: "Add Notes" always appends rather than overwriting.
+ * free-text notes on a verse-of-the-day date, keyed by date rather than reference so a
+ * repeated reference in a future year gets its own notes instead of reusing old ones.
+ * a date can have multiple notes, add notes always appends.
  */
 class VerseNotesRepository(private val dataStore: DataStore<Preferences>) {
     private val json = Json { ignoreUnknownKeys = true }
@@ -46,7 +45,7 @@ class VerseNotesRepository(private val dataStore: DataStore<Preferences>) {
         this[NOTES_KEY]?.let { raw -> runCatching { json.decodeFromString(serializer, raw) }.getOrNull() }
             ?: emptyList()
 
-    /** Always appends a new note; blank text is a no-op. */
+    /** always appends a new note, blank text is a no-op. */
     suspend fun addNote(date: String, reference: String, text: String, translation: Translation) {
         val trimmed = text.trim()
         if (trimmed.isEmpty()) return
@@ -63,7 +62,7 @@ class VerseNotesRepository(private val dataStore: DataStore<Preferences>) {
         }
     }
 
-    /** Edits one specific note in place (used from View All Notes). Blank text deletes it. */
+    /** edits one note in place (from all notes). blank text deletes it. */
     suspend fun updateNote(id: String, text: String) {
         val trimmed = text.trim()
         dataStore.edit { prefs ->

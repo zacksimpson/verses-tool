@@ -5,20 +5,18 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 
 internal object VersePreferences {
-    // Gates the one-time FallbackTranslationInfoScreen shown the first time the search
-    // icon is tapped — flipped to true right before that first navigation, never reset.
+    // gates the one-time info screen shown the first time the search icon is tapped,
+    // flipped true right before that navigation and never reset
     val HAS_SEEN_FALLBACK_TRANSLATION_INFO = booleanPreferencesKey("has_seen_fallback_translation_info")
     val CACHED_DATE = stringPreferencesKey("cached_date")
     val CACHED_REFERENCE = stringPreferencesKey("cached_reference")
     val CACHED_TEXT = stringPreferencesKey("cached_text")
-    // Which translation CACHED_TEXT is in — a translation switch must invalidate the
-    // cache even if CACHED_DATE is still today, or the old translation's text would
-    // flash under the new translation's label.
+    // which translation CACHED_TEXT is in, so a switch invalidates the cache even when
+    // CACHED_DATE is still today
     val CACHED_TRANSLATION = stringPreferencesKey("cached_translation")
     val SELECTED_TRANSLATION = stringPreferencesKey("selected_translation")
-    // Separate from SELECTED_TRANSLATION, which is exclusively about the daily verse —
-    // this is which translation the verse lookup feature fetches in, defaulting to KJV
-    // (any translation is a valid choice here, same list as SELECTED_TRANSLATION's picker).
+    // separate from SELECTED_TRANSLATION (daily verse only), this is what the lookup
+    // feature fetches in, defaulting to KJV
     val LOOKUP_TRANSLATION = stringPreferencesKey("lookup_translation")
 }
 
@@ -28,12 +26,10 @@ internal fun Preferences.selectedTranslation(): Translation =
 internal fun Preferences.cachedTranslation(): Translation =
     Translation.fromNameOrDefault(this[VersePreferences.CACHED_TRANSLATION])
 
-/** How many verses are currently cached offline for [translation] — 0 unless the cache's own
- *  translation matches (there's only one durable cache slot, the daily verse, shared across
- *  every translation and overwritten once a day; the lookup flow never persists what it
- *  fetches). Parses [VersePreferences.CACHED_REFERENCE]'s verse range via [UsfmReference] —
- *  falls back to 0 on a malformed/legacy reference rather than throwing, since this only
- *  feeds a read-only display (Settings → Advanced → View API Logs). */
+/** how many verses are cached offline for [translation], 0 unless the cache's own
+ *  translation matches. there's only one cache slot, the daily verse, overwritten once a
+ *  day. falls back to 0 on a malformed reference instead of throwing, since this only
+ *  feeds a read-only display. */
 internal fun Preferences.cachedVerseCount(translation: Translation): Int {
     if (cachedTranslation() != translation) return 0
     val reference = this[VersePreferences.CACHED_REFERENCE] ?: return 0

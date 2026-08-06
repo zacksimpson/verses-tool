@@ -36,12 +36,9 @@ import com.thelightphone.sdk.ui.LightTopBarCenter
 import com.thelightphone.sdk.ui.gridUnitsAsDp
 
 /**
- * Word-by-word memorization drill. The forward chevron blanks 2-4 more random words at
- * a time (underline in place of each word, same width, punctuation included in the
- * blank); the back chevron un-blanks exactly the batch the last forward tap added. Both
- * the random reveal order and the batch sizes are generated once when the screen opens
- * and then just walked back and forth by index, so repeatedly tapping forward/back always
- * lands on the same words at the same step — it isn't re-rolled or persisted, so leaving
+ * word-by-word memorization drill. forward blanks 2-4 more random words at a time, back
+ * un-blanks exactly the last batch added. reveal order and batch sizes are generated once
+ * when the screen opens and just walked by index, not re-rolled or persisted, so leaving
  * and reopening starts a fresh attempt.
  */
 class MemorizeScreen(
@@ -73,9 +70,8 @@ class MemorizeScreen(
         val blankedIndices = remember(blankedCount) { blankOrder.take(blankedCount).toSet() }
 
         LightTheme(colors = themeColors) {
-            // Modal-style (DONE in the bottom bar to dismiss, no back chevron) — swipe-back
-            // is intentionally off so there's exactly one way out, matching the affordance
-            // shown, same pattern as VerseDatePickerScreen's calendar.
+            // modal style, DONE in the bottom bar dismisses. swipe-back is off so there's
+            // one way out, same as VerseDatePickerScreen's calendar
             SwipeBackContainer(enabled = false, onSwipeBack = { goBack(Unit) }) {
                 Column(
                     modifier = Modifier
@@ -125,10 +121,8 @@ class MemorizeScreen(
                                 },
                                 contentDescription = "Show previous words",
                             ),
-                            // Same "DONE" styling as a ConfirmScreen's confirm button
-                            // (LightTextVariant.Button, the bottom bar's own default text
-                            // variant) — the only way to leave this modal screen now that
-                            // there's no back chevron or swipe-back.
+                            // same DONE styling as a confirm screen, the only way to leave
+                            // since there's no back chevron or swipe-back
                             LightBarButton.Text(
                                 text = "DONE",
                                 onClick = { goBack(Unit) },
@@ -155,9 +149,8 @@ private fun BlankableWord(word: String, isBlank: Boolean) {
     val lineColor = LightThemeTokens.colors.content
     val strokeWidthPx = with(LocalDensity.current) { 2.dp.toPx() }
 
-    // Draws the underline against this Text's own measured size rather than wrapping it
-    // in a Box with fillMaxWidth() — inside a FlowRow, fillMaxWidth() resolves against
-    // the row's remaining width, not this word's width, so it overshoots.
+    // draws the underline against the text's own size. fillMaxWidth() inside a FlowRow
+    // would resolve against the row's remaining width instead of this word, and overshoot
     LightText(
         text = word,
         variant = LightTextVariant.Heading,

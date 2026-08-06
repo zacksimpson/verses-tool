@@ -30,7 +30,7 @@ import com.thelightphone.sdk.ui.gridUnitsAsDp
 
 private const val CHAPTER_GRID_COLUMNS = 3
 
-/** Third screen of the verse lookup flow — a grid of chapter numbers for [book]. */
+/** third screen of the lookup flow, a grid of chapter numbers for [book]. */
 class ChapterPickerScreen(
     sealedActivity: SealedLightActivity,
     private val book: String,
@@ -77,9 +77,8 @@ class ChapterPickerScreen(
                                                 LightText(text = chapter.toString(), variant = LightTextVariant.Subtitle)
                                             }
                                         }
-                                        // Short trailing row (e.g. a book whose chapter count isn't a
-                                        // multiple of 3) still gets empty weighted cells so its numbers
-                                        // land in the same columns as every row above it.
+                                        // a short trailing row still gets empty weighted cells so its
+                                        // numbers land in the same columns as every row above it
                                         repeat(CHAPTER_GRID_COLUMNS - row.size) {
                                             Box(modifier = Modifier.weight(1f))
                                         }

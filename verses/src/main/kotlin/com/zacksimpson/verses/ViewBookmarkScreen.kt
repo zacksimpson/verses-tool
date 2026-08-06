@@ -31,11 +31,10 @@ import com.thelightphone.sdk.ui.gridUnitsAsDp
 import kotlinx.coroutines.launch
 
 /**
- * Read-only view of one saved bookmark, reached from All Bookmarks. Simpler than
- * ViewNoteScreen: no text to edit, so REMOVE BOOKMARK writes directly to the repository
- * itself rather than handing a result back up through a resultCallback — there's no
- * intermediate editor screen in the loop, just one direct action. All Bookmarks' own list
- * is a reactive Flow, so it reflects the removal automatically once we're back there.
+ * read-only view of one saved bookmark, reached from all bookmarks. simpler than
+ * ViewNoteScreen, no text to edit, so remove writes directly to the repository instead
+ * of a resultCallback. all bookmarks' list is a reactive flow, so it reflects the
+ * removal automatically.
  */
 class ViewBookmarkScreen(
     sealedActivity: SealedLightActivity,

@@ -47,10 +47,8 @@ private sealed class ResolveState {
     data class Error(val message: String) : ResolveState()
 }
 
-/** Given the verse a range was anchored on and the verse just tapped to close it, returns
- *  the resolved "Book Chapter:Verse" or "Book Chapter:Start-End" reference — order doesn't
- *  matter (tapping backwards from the anchor still resolves correctly) and tapping the
- *  anchor again resolves to a single verse rather than a same-start-and-end range. */
+/** resolves the anchor and tapped verse into a reference string. order doesn't matter,
+ *  and tapping the anchor again resolves to a single verse instead of a same-start range. */
 internal fun resolvePassageReference(book: String, chapter: Int, anchor: Int, tapped: Int): String {
     val lo = minOf(anchor, tapped)
     val hi = maxOf(anchor, tapped)
@@ -58,18 +56,14 @@ internal fun resolvePassageReference(book: String, chapter: Int, anchor: Int, ta
 }
 
 /**
- * Fourth screen of the verse lookup flow — a grid of verse numbers for [book] [chapter].
- * The grid itself is static (BibleBooks' baked-in per-chapter verse counts), so it renders
- * instantly with no network round trip. Only once a verse or range is actually confirmed
- * does a single fetchVerses call resolve its verses (translation from the lookup
- * preference, defaulting to KJV — user-configurable among any translation, see Settings'
- * Fallback Translation and VersePreferences.lookupTranslation), then hands off to
- * PassageScreen to read it. LookupRateLimiter's daily backstop is consulted before every
- * fetch here — a no-op for public domain sources, a real backstop for copyrighted ones.
+ * fourth screen of the lookup flow, a grid of verse numbers for [book] [chapter]. the
+ * grid is static (BibleBooks' baked-in verse counts) so it renders instantly with no
+ * network round trip. confirming a verse or range triggers one fetchVerses call using the
+ * lookup translation preference, then hands off to PassageScreen. LookupRateLimiter's
+ * daily backstop runs before every fetch.
  *
- * Tapping a verse number anchors a range start (underlined); tapping another verse number
- * closes the range and resolves it. Tapping the anchor again resolves to that single verse
- * instead of a same-verse range.
+ * tapping a verse number anchors a range start (underlined), tapping another closes the
+ * range and resolves it. tapping the anchor again resolves to that single verse.
  */
 class VersePickerScreen(
     sealedActivity: SealedLightActivity,
@@ -81,8 +75,7 @@ class VersePickerScreen(
     override fun Content() {
         val themeColors by LightThemeController.colors.collectAsState()
         val scope = rememberCoroutineScope()
-        // Scoped to the screen (not per-tap) so picking multiple verses from this chapter
-        // reuses the same HTTP client instead of building and tearing one down every time.
+        // scoped to the screen, not per-tap, so picking multiple verses reuses the same http client
         val fetcher = remember { VerseFetcher() }
         DisposableEffect(Unit) {
             onDispose { fetcher.close() }

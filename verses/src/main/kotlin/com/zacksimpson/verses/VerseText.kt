@@ -12,38 +12,27 @@ import com.thelightphone.sdk.ui.LightText
 import com.thelightphone.sdk.ui.LightTextVariant
 import com.thelightphone.sdk.ui.gridUnitsAsDp
 
-// Shared word gaps for verse text, also used by MemorizeScreen's per-word FlowRow so
-// its blanking never looks visually different from a normal verse display.
+// shared word gaps, also used by memorize's per-word flow row so blanking doesn't
+// look different from a normal verse display
 val VERSE_WORD_HORIZONTAL_GAP = 4.dp
 val VERSE_WORD_VERTICAL_GAP = 4.dp
 
-/** Extra vertical gap above a row that starts a new paragraph — bigger than
- *  [VERSE_WORD_VERTICAL_GAP] so a real paragraph break reads as visually distinct from a
- *  line just wrapping for width, which used the same small gap as everything else and made
- *  the two indistinguishable at this text size. Used by PassageScreen's NumberedVerseText. */
+/** extra gap above a row starting a new paragraph, so a real break reads as
+ *  distinct from a line that's just wrapping for width. */
 val PARAGRAPH_VERTICAL_GAP = 14.dp
 
-/** Marks the start of a poetic line — a tab never otherwise appears in verse text, and
- *  unlike relying on indentation alone, this stays present even for an unindented ("poem":
- *  1) poetic line, so a verse that's a single poetic line at indent level 0 is still
- *  distinguishable from plain prose (see [isPoeticText]). HelloAoParsing prefixes every
- *  poem-tagged line with this (see HelloAoParsing.linesFrom); [linesFromVerseText] strips
- *  it back off. */
+/** marks the start of a poetic line, a tab never shows up in verse text otherwise.
+ *  helloao tags every poem line with this; [linesFromVerseText] strips it back off. */
 internal const val POETIC_LINE_MARKER = "\t"
 
-/** Two literal spaces per poetic indent level, following [POETIC_LINE_MARKER] — the
- *  convention HelloAoParsing encodes a verse's poetic indentation with, since
- *  fetchVerseText/fetchVerses still hand back a plain String everywhere else in the app.
- *  [linesFromVerseText] below reads it back out. Sources with no such structure (ESV,
- *  YouVersion) just come back as a single unmarked line, same as before this existed. */
+/** two spaces per poetic indent level, the convention helloao uses for indentation.
+ *  esv and youversion have no such structure, they come back as one plain line. */
 internal const val POETIC_INDENT_UNIT = "  "
 
-/** Grid units of leading indent per poetic level — same "poem":1/2/3 numbering the source
- *  JSON uses, just re-based to start at 0 for an unindented first line. Shared with
- *  PassageScreen's NumberedVerseText, which applies the same indent per row group. */
+/** grid units of indent per poetic level, rebased so an unindented line starts at 0. */
 internal const val POETIC_INDENT_GRID_UNITS = 2f
 
-/** One line of verse text with its poetic indent level already extracted (0 = no indent). */
+/** one line of verse text with its poetic indent level already extracted (0 = no indent). */
 internal data class VerseLine(val indentLevel: Int, val text: String)
 
 internal fun linesFromVerseText(text: String): List<VerseLine> =
@@ -57,15 +46,12 @@ internal fun linesFromVerseText(text: String): List<VerseLine> =
         VerseLine(indentLevel = level, text = remaining)
     }
 
-/** Whether a single verse's text carries HelloAoParsing's poetic structure — a plain prose
- *  verse never contains [POETIC_LINE_MARKER], so this only ever fires for public domain
- *  sources' poetry, including a verse that's just one poetic line at indent level 0. */
+/** whether a verse's text carries helloao's poetic structure, only true for public
+ *  domain poetry sources. */
 internal fun isPoeticText(text: String): Boolean = POETIC_LINE_MARKER in text
 
-/** Joins multiple verses' texts into one combined string for callers that only need flat
- *  text (fetchVerseText's multi-verse ranges) — a hard line break goes between two verses
- *  only when either side is itself poetic, so a plain-prose range still reads as one
- *  continuous paragraph while a poetic range keeps each verse on its own line(s). */
+/** joins verse texts into one string. a line break goes between two verses only if
+ *  either side is poetic, so a plain-prose range still reads as one paragraph. */
 internal fun joinVerseTexts(texts: List<String>): String {
     if (texts.isEmpty()) return ""
     val result = StringBuilder(texts.first())
@@ -77,12 +63,9 @@ internal fun joinVerseTexts(texts: List<String>): String {
 }
 
 /**
- * Renders verse text word-by-word in a FlowRow per line (rather than as a single Text
- * block) — originally built for MemorizeScreen (so blanking a word never changes layout
- * or triggers a rewrap), reused everywhere a verse is shown so all three screens match.
- * Poetic passages (Psalms, Proverbs, OT poetry quoted in the NT) keep their line breaks
- * and indentation instead of collapsing into one flowing paragraph — plain prose is
- * unaffected, since it always comes back as a single line here.
+ * renders verse text word by word in a flow row per line instead of one text block,
+ * so blanking a word in memorize never triggers a rewrap. poetic passages keep their
+ * line breaks and indentation, plain prose is unaffected.
  */
 @Composable
 fun VerseText(text: String, modifier: Modifier = Modifier) {

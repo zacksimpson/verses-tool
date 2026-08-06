@@ -22,10 +22,9 @@ import com.thelightphone.sdk.ui.LightTopBar
 import com.thelightphone.sdk.ui.LightTopBarCenter
 import com.thelightphone.sdk.ui.gridUnitsAsDp
 
-/** Explains why verse/passage lookups default to KJV and how the per-device daily lookup
- *  limit on copyrighted translations works — reached from Settings. Modal-style (UNDERSTOOD
- *  in the bottom bar to dismiss, no back chevron) matching MemorizeScreen's DONE screen, since
- *  this is a one-off explainer rather than a screen with ongoing navigation. */
+/** explains why lookups default to KJV and how the per-device daily limit on copyrighted
+ *  translations works, reached from settings. modal style, UNDERSTOOD dismisses with no
+ *  back chevron, same as memorize's DONE screen since this is a one-off explainer. */
 class FallbackTranslationInfoScreen(sealedActivity: SealedLightActivity) : SimpleLightScreen<Unit>(sealedActivity) {
 
     @Composable

@@ -19,16 +19,14 @@ import com.thelightphone.sdk.ui.LightTopBar
 import com.thelightphone.sdk.ui.LightTopBarCenter
 import com.thelightphone.sdk.ui.gridUnitsAsDp
 
-/** One level under Settings — the daily-verse translation and the lookup fallback
- *  translation, each showing its current selection under the label (see
- *  [SettingsValueRow], same label-over-value shape as ApiLogsScreen's StatRow), plus the
- *  explainer for why lookups default to a public domain translation.
+/** one level under settings, the daily-verse translation and the lookup fallback
+ *  translation, each showing its current selection under the label, plus the explainer
+ *  for why lookups default to a public domain translation.
  *
- *  [initialTranslationAbbreviation]/[initialFallbackAbbreviation] come from SettingsScreen's
- *  own (already-settled, since the user had to look at and tap that screen first) read of
- *  the same preferences — shown until this screen's own collectAsState catches up, which
- *  avoids a flash to a guessed default on the very first frame when a preference isn't at
- *  its default. */
+ *  [initialTranslationAbbreviation]/[initialFallbackAbbreviation] come from
+ *  SettingsScreen's own already-settled read of the same preferences, shown until this
+ *  screen's own collectAsState catches up so there's no flash to a guessed default on
+ *  the first frame. */
 class TranslationsSettingsScreen(
     sealedActivity: SealedLightActivity,
     private val initialTranslationAbbreviation: String,

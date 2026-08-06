@@ -18,7 +18,7 @@ internal data class HelloAoChapter(val number: Int = 0, val content: List<JsonEl
 @Serializable
 internal data class HelloAoChapterResponse(val chapter: HelloAoChapter = HelloAoChapter())
 
-/** A whole chapter's verses, in order. */
+/** a whole chapter's verses, in order. */
 internal data class BibleChapter(
     val book: String,
     val chapter: Int,
@@ -26,25 +26,16 @@ internal data class BibleChapter(
 )
 
 /**
- * Pure parsing logic pulled out of [HelloAoApi] so it's unit testable without network
- * access. bible.helloao.org's chapter JSON is a mixed array of headings, line breaks, and
- * verses. A top-level `{"type": "heading", ...}` or `{"type": "line_break"}` item marks a
- * paragraph/section break before whatever verse comes next (see [VerseSegment.startsNewParagraph]) —
- * confirmed on BSB, which has this structure for both prose (Genesis 1's "The First Day" /
- * "The Second Day" headings) and poetry (Matthew 5's Beatitudes); eng_kjv (KJV's source) has
- * none of this structure, so KJV verses never get startsNewParagraph = true.
+ * parsing logic pulled out of [HelloAoApi] so it's unit testable without network access.
+ * bible.helloao.org's chapter json mixes headings, line breaks, and verses in one array.
+ * a heading or line_break item marks a paragraph break before whatever verse comes next.
+ * confirmed on bsb, which has this for both prose and poetry. kjv's source has none of it,
+ * so kjv verses never get startsNewParagraph = true.
  *
- * Within a verse's own content, items mix plain strings with objects like `{"text": "...",
- * "poem": 1}` (a poetic line, at indent level "poem" - 1 — a "poem": 2 item is one indent
- * step in from "poem": 1) or `{"lineBreak": true}` (ends whatever line is currently open —
- * a poetic verse's last line, or a blank-line stanza break) or `{"noteId": 8}` (footnote
- * refs, contribute no text). A poem-tagged object always starts its own line — that's what
- * marks it as poetry in the first place; plain text with no "poem" tag just continues
- * whatever line is open, so ordinary prose still collapses back into a single line exactly
- * as before this existed. Lines come back joined with "\n", every poetic line prefixed with
- * [POETIC_LINE_MARKER] (so even an unindented poetic line stays distinguishable from prose)
- * followed by [POETIC_INDENT_UNIT] per indent level — the encoding VerseText and
- * PassageScreen's NumberedVerseText read back out (see linesFromVerseText).
+ * inside a verse, a poem-tagged item starts its own line at an indent level, lineBreak ends
+ * the current line, and plain text just continues whatever line is open. lines come back
+ * joined with "\n", poetic lines prefixed with [POETIC_LINE_MARKER] and [POETIC_INDENT_UNIT]
+ * per indent level, which linesFromVerseText reads back out.
  */
 internal object HelloAoParsing {
     fun versesFromContent(content: List<JsonElement>): List<VerseSegment> {
@@ -105,10 +96,9 @@ internal object HelloAoParsing {
 }
 
 /**
- * Client for bible.helloao.org — free, keyless, hosting both public domain translations
- * this app uses (KJV as "eng_kjv", BSB as "BSB", see [PublicDomainProvider]). There's no
- * single-verse endpoint, only whole chapters, so a single-verse or verse-range lookup
- * always fetches the containing chapter and filters it down (see [HelloAoParsing]).
+ * client for bible.helloao.org, free and keyless, hosts both public domain translations
+ * this app uses (kjv as eng_kjv, bsb as BSB). no single-verse endpoint, so a lookup always
+ * fetches the whole chapter and filters it down.
  */
 internal class HelloAoApi(private val translationId: String) {
     private val client = createBibleApiHttpClient()
@@ -121,9 +111,8 @@ internal class HelloAoApi(private val translationId: String) {
         joinVerseTexts(verses.map { it.text })
     }
 
-    /** Same passage as [fetchVerseText], but keeping each verse's number and paragraph
-     *  structure attached rather than flattening to one string — lets the UI show verse
-     *  numbers and paragraph breaks for a range. */
+    /** same passage as [fetchVerseText] but keeps verse numbers and paragraph structure
+     *  instead of flattening to one string. */
     suspend fun fetchVerses(reference: String): Result<List<VerseSegment>> = runCatching {
         versesInRange(reference).ifEmpty {
             throw IllegalStateException("helloao returned no passage text for '$reference'.")

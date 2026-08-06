@@ -23,9 +23,9 @@ import com.thelightphone.sdk.ui.LightTopBarCenter
 import com.thelightphone.sdk.ui.gridUnitsAsDp
 
 /**
- * Renders straight from Translation.entries so a translation's copyright/trademark
- * notice can't be forgotten when a new one is added — see Translation.kt's
- * copyrightNotice/trademarkNotice fields, which the constructor requires for every case.
+ * renders straight from Translation.entries so a translation's copyright/trademark
+ * notice can't be forgotten when a new one is added, the constructor requires those
+ * fields for every case.
  */
 class CopyrightInfoScreen(sealedActivity: SealedLightActivity) : SimpleLightScreen<Unit>(sealedActivity) {
 
@@ -56,8 +56,8 @@ class CopyrightInfoScreen(sealedActivity: SealedLightActivity) : SimpleLightScre
                                 NoticeParagraph(translation.trademarkNotice)
                             }
 
-                            // Deduplicated by content — NIV and NASB share the same
-                            // YouVersion note, so it's shown once, not once per translation.
+                            // deduplicated by content, NIV and NASB share the same
+                            // youversion note so it's shown once, not once per translation
                             val usageNotes = Translation.entries.map { it.source.usageNote }.distinct()
                             usageNotes.forEachIndexed { index, note ->
                                 NoticeParagraph(note, bottomPadding = if (index == usageNotes.lastIndex) 0f else 1f)

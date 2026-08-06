@@ -34,8 +34,8 @@ import com.thelightphone.sdk.ui.LightTopBarCenter
 import com.thelightphone.sdk.ui.gridUnitsAsDp
 import java.time.LocalDate
 
-/** Shows the verse for a specific past date, looked up live (no caching — this is a
- *  low-frequency lookup, unlike the home screen's daily cache). */
+/** shows the verse for a specific past date, looked up live with no caching since
+ *  this is a low-frequency lookup. */
 class VerseForDateScreen(
     sealedActivity: SealedLightActivity,
     private val dateStr: String,
@@ -60,10 +60,9 @@ class VerseForDateScreen(
                     return@LaunchedEffect
                 }
 
-                // Same daily backstop the verse lookup flow uses — this screen has no
-                // caching of its own (a fresh live fetch on every date tapped), so without
-                // this a user rapidly browsing VerseDatePickerScreen's calendar could burn
-                // through the shared ESV/YouVersion API budget with nothing to stop it.
+                // same daily backstop the lookup flow uses. this screen fetches live every
+                // time, so without it browsing the calendar fast could burn through the
+                // shared api budget
                 val rateLimiter = LookupRateLimiter(lightContext.dataStore)
                 if (!rateLimiter.shouldAllowLookup(translation)) {
                     state = VerseUiState.ConfigError(
@@ -86,10 +85,8 @@ class VerseForDateScreen(
                     onFailure = { VerseUiState.ConfigError("Couldn't load that day's verse. Try again shortly.") },
                 )
             } finally {
-                // In a finally (not a plain sequential call) so this still runs if the
-                // coroutine is cancelled mid-fetch — e.g. the user navigates to another
-                // date before this one's request completes — otherwise the two HTTP
-                // clients VerseFetcher owns are abandoned without being shut down.
+                // in a finally so this still runs if the coroutine is cancelled mid-fetch,
+                // e.g. navigating to another date before this request completes
                 fetcher.close()
             }
         }
@@ -132,6 +129,8 @@ class VerseForDateScreen(
                                     Column(
                                         modifier = Modifier
                                             .combinedClickable(
+                                                interactionSource = null,
+                                                indication = null,
                                                 onClick = {},
                                                 onLongClick = {
                                                     navigateTo(

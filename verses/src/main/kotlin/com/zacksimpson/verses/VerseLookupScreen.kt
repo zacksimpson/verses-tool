@@ -24,10 +24,9 @@ import com.thelightphone.sdk.ui.LightTopBarCenter
 import com.thelightphone.sdk.ui.gridUnitsAsDp
 
 /**
- * First screen of the verse lookup flow, reached from the SEARCH icon on the home
- * screen: choose a testament, then a book ([BibleBookListScreen]), a chapter
- * ([ChapterPickerScreen]), and finally a verse or verse range ([VersePickerScreen]),
- * which hands the resolved passage off to [VerseActionsScreen].
+ * first screen of the lookup flow, reached from the search icon on the home screen:
+ * choose a testament, then a book, a chapter, and finally a verse or range, which
+ * hands the resolved passage off to [VerseActionsScreen].
  */
 class VerseLookupScreen(sealedActivity: SealedLightActivity) : SimpleLightScreen<Unit>(sealedActivity) {
 

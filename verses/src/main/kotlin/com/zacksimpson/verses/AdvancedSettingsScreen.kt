@@ -19,9 +19,9 @@ import com.thelightphone.sdk.ui.LightTopBar
 import com.thelightphone.sdk.ui.LightTopBarCenter
 import com.thelightphone.sdk.ui.gridUnitsAsDp
 
-/** One level under Settings, for options most users never need — the API call/cache log
- *  and the copyright/trademark notices, kept out of the main Settings list so they don't
- *  compete for attention. */
+/** one level under settings, for options most users never need: the api call/cache log
+ *  and the copyright/trademark notices, kept out of the main list so they don't compete
+ *  for attention. */
 class AdvancedSettingsScreen(sealedActivity: SealedLightActivity) : SimpleLightScreen<Unit>(sealedActivity) {
 
     @Composable
