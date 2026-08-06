@@ -29,7 +29,7 @@ class LightSdkPlugin : Plugin<Project> {
             "org.jetbrains.kotlinx:kotlinx-io",
             "org.unifiedpush.android:connector",
             "androidx.core:core-splashscreen",
-            "com.thelightphone.lp3keyboard",
+            "com.github.lightphone:light-keyboard",
             "androidx.room",
             "androidx.work",
             "androidx.startup",
