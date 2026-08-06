@@ -45,6 +45,9 @@ class TextEditorScreen(
                     // used elsewhere for notes) so more of a long note stays visible above
                     // the embedded keyboard.
                     inputTextVariant = LightTextVariant.Paragraph,
+                    // Only capitalize a fresh note, not when editing existing text and the
+                    // cursor lands mid-sentence.
+                    initialCaps = request.initialValue.isBlank(),
                 )
             }
         }
