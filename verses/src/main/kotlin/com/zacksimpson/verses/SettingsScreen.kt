@@ -1,7 +1,6 @@
 package com.zacksimpson.verses
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -23,6 +22,7 @@ import com.thelightphone.sdk.ui.LightThemeTokens
 import com.thelightphone.sdk.ui.LightTopBar
 import com.thelightphone.sdk.ui.LightTopBarCenter
 import com.thelightphone.sdk.ui.gridUnitsAsDp
+import com.thelightphone.sdk.ui.lightClickable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 
@@ -98,7 +98,7 @@ internal fun SettingsLinkRow(label: String, onClick: () -> Unit) {
         variant = LightTextVariant.Heading,
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick)
+            .lightClickable(onClick = onClick)
             .padding(horizontal = 1.5f.gridUnitsAsDp(), vertical = 1f.gridUnitsAsDp()),
     )
 }
@@ -110,7 +110,7 @@ internal fun SettingsValueRow(label: String, value: String, onClick: () -> Unit)
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick)
+            .lightClickable(onClick = onClick)
             .padding(horizontal = 1.5f.gridUnitsAsDp(), vertical = 1f.gridUnitsAsDp()),
     ) {
         LightText(text = label, variant = LightTextVariant.Paragraph)
