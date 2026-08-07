@@ -1,7 +1,6 @@
 package com.zacksimpson.verses
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -27,6 +26,7 @@ import com.thelightphone.sdk.ui.LightThemeTokens
 import com.thelightphone.sdk.ui.LightTopBar
 import com.thelightphone.sdk.ui.LightTopBarCenter
 import com.thelightphone.sdk.ui.gridUnitsAsDp
+import com.thelightphone.sdk.ui.lightClickable
 
 private const val CHAPTER_GRID_COLUMNS = 3
 
@@ -66,7 +66,7 @@ class ChapterPickerScreen(
                                             Box(
                                                 modifier = Modifier
                                                     .weight(1f)
-                                                    .clickable {
+                                                    .lightClickable {
                                                         navigateTo(
                                                             screenFactory = { VersePickerScreen(it, book, chapter) },
                                                         )

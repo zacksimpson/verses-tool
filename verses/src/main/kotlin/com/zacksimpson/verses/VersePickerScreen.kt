@@ -1,7 +1,6 @@
 package com.zacksimpson.verses
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -36,6 +35,7 @@ import com.thelightphone.sdk.ui.LightThemeTokens
 import com.thelightphone.sdk.ui.LightTopBar
 import com.thelightphone.sdk.ui.LightTopBarCenter
 import com.thelightphone.sdk.ui.gridUnitsAsDp
+import com.thelightphone.sdk.ui.lightClickable
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
@@ -150,7 +150,7 @@ class VersePickerScreen(
                                 variant = LightTextVariant.Copy,
                                 modifier = Modifier
                                     .padding(horizontal = 1.5f.gridUnitsAsDp())
-                                    .clickable { resolveState = ResolveState.Idle },
+                                    .lightClickable { resolveState = ResolveState.Idle },
                             )
 
                             is ResolveState.Idle -> {
@@ -196,7 +196,7 @@ private fun RowScope.VerseCell(number: Int, isAnchor: Boolean, onClick: () -> Un
     Box(
         modifier = Modifier
             .weight(1f)
-            .clickable(onClick = onClick)
+            .lightClickable(onClick = onClick)
             .padding(vertical = 0.75f.gridUnitsAsDp()),
         contentAlignment = Alignment.Center,
     ) {
