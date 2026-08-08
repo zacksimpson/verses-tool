@@ -118,8 +118,11 @@ private fun BookmarkRow(bookmark: VerseBookmark, onClick: () -> Unit) {
             variant = LightTextVariant.Detail,
             modifier = Modifier.padding(bottom = 0.25f.gridUnitsAsDp()),
         )
+        val previewText = remember(bookmark.text) {
+            linesFromVerseText(bookmark.text).joinToString(" ") { it.text }
+        }
         LightText(
-            text = bookmark.text,
+            text = previewText,
             variant = LightTextVariant.Copy,
             maxLines = BOOKMARK_PREVIEW_MAX_LINES,
             overflow = TextOverflow.Ellipsis,

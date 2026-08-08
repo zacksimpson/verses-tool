@@ -18,5 +18,5 @@ internal fun formatRelativeDate(dateStr: String): String {
     val (y, mo, d) = dateStr.split("-").map(String::toInt)
     val date = LocalDate.of(y, mo, d)
     val overAYearOld = date.isBefore(LocalDate.now().minusYears(1))
-    return if (overAYearOld) "${MONTHS[mo - 1]} $d, $y" else "${MONTHS[mo - 1]} $d"
+    return if (overAYearOld) formatDisplayDate(dateStr) else "${MONTHS[mo - 1]} $d"
 }
