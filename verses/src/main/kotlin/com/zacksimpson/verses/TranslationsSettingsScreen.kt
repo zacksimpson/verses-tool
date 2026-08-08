@@ -84,7 +84,7 @@ class TranslationsSettingsScreen(
                         },
                     )
                     SettingsLinkRow(
-                        label = "About Fallback Translations",
+                        label = "Fallback Translation Info",
                         onClick = { navigateTo(screenFactory = { FallbackTranslationInfoScreen(it) }) },
                     )
                 }

@@ -50,17 +50,12 @@ class CopyrightInfoScreen(sealedActivity: SealedLightActivity) : SimpleLightScre
                         modifier = Modifier.fillMaxSize(),
                     ) {
                         Column(modifier = Modifier.padding(horizontal = 1.5f.gridUnitsAsDp())) {
-                            Translation.entries.forEach { translation ->
+                            Translation.entries.forEachIndexed { index, translation ->
+                                val isLast = index == Translation.entries.lastIndex
                                 NoticeHeader(translation.displayName)
                                 NoticeParagraph(translation.copyrightNotice)
                                 NoticeParagraph(translation.trademarkNotice)
-                            }
-
-                            // deduplicated by content, NIV and NASB share the same
-                            // youversion note so it's shown once, not once per translation
-                            val usageNotes = Translation.entries.map { it.source.usageNote }.distinct()
-                            usageNotes.forEachIndexed { index, note ->
-                                NoticeParagraph(note, bottomPadding = if (index == usageNotes.lastIndex) 0f else 1f)
+                                NoticeParagraph(translation.source.usageNote, bottomPadding = if (isLast) 0f else 1f)
                             }
                         }
                     }
