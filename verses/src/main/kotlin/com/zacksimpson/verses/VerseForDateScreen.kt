@@ -49,6 +49,8 @@ class VerseForDateScreen(
         val notesRepo = remember { VerseNotesRepository(lightContext.dataStore) }
         val notes by notesRepo.notes.collectAsState(initial = emptyList())
         val hasNote = remember(notes, dateStr) { notes.any { it.date == dateStr } }
+        // guards against a fast double-tap pushing two PassageScreen instances
+        var isJumpingToChapter by remember { mutableStateOf(false) }
 
         LaunchedEffect(dateStr) {
             val prefs = lightContext.dataStore.data.first()
@@ -155,12 +157,16 @@ class VerseForDateScreen(
                                             verticalAlignment = Alignment.CenterVertically,
                                             modifier = Modifier.lightClickable(
                                                 onClick = {
-                                                    bookAndChapterFrom(mode.reference)?.let { (book, chapter) ->
-                                                        navigateTo(
-                                                            screenFactory = {
-                                                                PassageScreen(it, "$book $chapter", null, mode.translation)
-                                                            },
-                                                        )
+                                                    if (!isJumpingToChapter) {
+                                                        bookAndChapterFrom(mode.reference)?.let { (book, chapter) ->
+                                                            isJumpingToChapter = true
+                                                            navigateTo(
+                                                                screenFactory = {
+                                                                    PassageScreen(it, "$book $chapter", null, mode.translation)
+                                                                },
+                                                                resultCallback = { isJumpingToChapter = false },
+                                                            )
+                                                        }
                                                     }
                                                 },
                                             ),

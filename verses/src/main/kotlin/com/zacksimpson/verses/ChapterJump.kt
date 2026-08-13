@@ -53,14 +53,24 @@ internal suspend fun resolveChapterForReference(
             ?.let { return ChapterJumpResult.Success(it) }
     }
 
-    val rateLimiter = LookupRateLimiter(dataStore)
-    if (!rateLimiter.shouldAllowLookup(translation)) {
+    if (!fetcher.isConfigured(translation)) {
+        return ChapterJumpResult.Failed(fetcher.missingKeyMessage(translation))
+    }
+
+    // reuses the prefs already read above instead of a second DataStore read, same as
+    // shouldAllowLookup would do internally
+    val isAllowed = translation.source is TranslationSource.PublicDomain || LookupRateLimit.isAllowed(
+        storedDate = prefs[LookupRateLimit.dateKey(translation)],
+        storedCount = prefs[LookupRateLimit.countKey(translation)] ?: 0,
+        today = today,
+    )
+    if (!isAllowed) {
         return ChapterJumpResult.Failed(dailyLimitReachedMessage(translation))
     }
 
     return fetcher.fetchWholeChapter(translation, book, chapter).fold(
         onSuccess = { verses ->
-            rateLimiter.recordLookup(translation)
+            LookupRateLimiter(dataStore).recordLookup(translation)
             dataStore.edit { p ->
                 p[VersePreferences.CACHED_CHAPTER_DATE] = today
                 p[VersePreferences.CACHED_CHAPTER_KEY] = cacheKey

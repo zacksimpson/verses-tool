@@ -57,7 +57,8 @@ class PassageScreen(
         val today = remember { LocalDate.now().toString() }
         val notesRepo = remember { VerseNotesRepository(lightContext.dataStore) }
         val notes by notesRepo.notes.collectAsState(initial = emptyList())
-        // match on reference too, not just date, since a lookup can share a date with the daily verse
+        // exact reference match only, a note is about a specific verse, not the whole
+        // chapter it happens to be in
         val hasNote = remember(notes, reference) { notes.any { it.date == today && it.reference == reference } }
 
         var verses by remember { mutableStateOf(initialVerses) }
@@ -101,27 +102,29 @@ class PassageScreen(
                                     modifier = Modifier.fillMaxSize(),
                                 ) {
                                     Column(
-                                        modifier = Modifier.padding(
-                                            horizontal = 1.5f.gridUnitsAsDp(),
-                                            vertical = 1.5f.gridUnitsAsDp(),
-                                        ),
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .combinedClickable(
+                                                interactionSource = null,
+                                                indication = null,
+                                                onClick = {},
+                                                onLongClick = {
+                                                    navigateTo(
+                                                        screenFactory = {
+                                                            VerseActionsScreen(it, today, reference, flatText, translation)
+                                                        },
+                                                    )
+                                                },
+                                            )
+                                            .padding(
+                                                horizontal = 1.5f.gridUnitsAsDp(),
+                                                vertical = 1.5f.gridUnitsAsDp(),
+                                            ),
                                     ) {
                                         NumberedVerseText(
                                             verses = loadedVerses,
                                             modifier = Modifier
                                                 .fillMaxWidth()
-                                                .combinedClickable(
-                                                    interactionSource = null,
-                                                    indication = null,
-                                                    onClick = {},
-                                                    onLongClick = {
-                                                        navigateTo(
-                                                            screenFactory = {
-                                                                VerseActionsScreen(it, today, reference, flatText, translation)
-                                                            },
-                                                        )
-                                                    },
-                                                )
                                                 .padding(bottom = 0.5f.gridUnitsAsDp()),
                                         )
                                         Row(verticalAlignment = Alignment.CenterVertically) {
