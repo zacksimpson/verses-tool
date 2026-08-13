@@ -32,6 +32,7 @@ import com.thelightphone.sdk.ui.LightThemeTokens
 import com.thelightphone.sdk.ui.LightTopBar
 import com.thelightphone.sdk.ui.LightTopBarCenter
 import com.thelightphone.sdk.ui.gridUnitsAsDp
+import com.thelightphone.sdk.ui.lightClickable
 import java.time.LocalDate
 
 /** shows the verse for a specific past date, looked up live with no caching since
@@ -65,13 +66,7 @@ class VerseForDateScreen(
                 // shared api budget
                 val rateLimiter = LookupRateLimiter(lightContext.dataStore)
                 if (!rateLimiter.shouldAllowLookup(translation)) {
-                    state = VerseUiState.ConfigError(
-                        "Today's lookup limit for ${translation.abbreviation} has been reached. " +
-                            "There's a soft daily limit per device on lookups for copyrighted " +
-                            "translations, to honor their API terms. Lookups for it pause until the " +
-                            "next day. You can always switch to a public domain translation in " +
-                            "Settings to continue reading.",
-                    )
+                    state = VerseUiState.ConfigError(dailyLimitReachedMessage(translation))
                     return@LaunchedEffect
                 }
 
@@ -127,35 +122,49 @@ class VerseForDateScreen(
                                     modifier = Modifier.fillMaxSize(),
                                 ) {
                                     Column(
-                                        modifier = Modifier
-                                            .combinedClickable(
-                                                interactionSource = null,
-                                                indication = null,
-                                                onClick = {},
-                                                onLongClick = {
-                                                    navigateTo(
-                                                        screenFactory = {
-                                                            VerseActionsScreen(
-                                                                it,
-                                                                dateStr,
-                                                                mode.reference,
-                                                                mode.text,
-                                                                mode.translation,
-                                                            )
-                                                        },
-                                                    )
-                                                },
-                                            )
-                                            .padding(
-                                                horizontal = 1.5f.gridUnitsAsDp(),
-                                                vertical = 1.5f.gridUnitsAsDp(),
-                                            ),
+                                        modifier = Modifier.padding(
+                                            horizontal = 1.5f.gridUnitsAsDp(),
+                                            vertical = 1.5f.gridUnitsAsDp(),
+                                        ),
                                     ) {
                                         VerseText(
                                             text = mode.text,
-                                            modifier = Modifier.padding(bottom = 0.5f.gridUnitsAsDp()),
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .combinedClickable(
+                                                    interactionSource = null,
+                                                    indication = null,
+                                                    onClick = {},
+                                                    onLongClick = {
+                                                        navigateTo(
+                                                            screenFactory = {
+                                                                VerseActionsScreen(
+                                                                    it,
+                                                                    dateStr,
+                                                                    mode.reference,
+                                                                    mode.text,
+                                                                    mode.translation,
+                                                                )
+                                                            },
+                                                        )
+                                                    },
+                                                )
+                                                .padding(bottom = 0.5f.gridUnitsAsDp()),
                                         )
-                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            modifier = Modifier.lightClickable(
+                                                onClick = {
+                                                    bookAndChapterFrom(mode.reference)?.let { (book, chapter) ->
+                                                        navigateTo(
+                                                            screenFactory = {
+                                                                PassageScreen(it, "$book $chapter", null, mode.translation)
+                                                            },
+                                                        )
+                                                    }
+                                                },
+                                            ),
+                                        ) {
                                             LightText(
                                                 text = "${mode.reference} (${mode.translation.abbreviation})",
                                                 variant = LightTextVariant.Copy,
