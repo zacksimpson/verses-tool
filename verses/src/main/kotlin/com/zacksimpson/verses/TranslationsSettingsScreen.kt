@@ -51,42 +51,44 @@ class TranslationsSettingsScreen(
                         modifier = Modifier.padding(bottom = 1f.gridUnitsAsDp()),
                     )
 
-                    SettingsValueRow(
-                        label = "Translation",
-                        value = prefs?.selectedTranslation()?.abbreviation ?: initialTranslationAbbreviation,
-                        onClick = {
-                            navigateTo(
-                                screenFactory = {
-                                    TranslationPickerScreen(
-                                        it,
-                                        title = "Translation",
-                                        preferenceKey = VersePreferences.SELECTED_TRANSLATION,
-                                        currentSelection = { p -> p.selectedTranslation() },
-                                    )
-                                },
-                            )
-                        },
-                    )
-                    SettingsValueRow(
-                        label = "Fallback Translation",
-                        value = prefs?.lookupTranslation()?.abbreviation ?: initialFallbackAbbreviation,
-                        onClick = {
-                            navigateTo(
-                                screenFactory = {
-                                    TranslationPickerScreen(
-                                        it,
-                                        title = "Fallback Translation",
-                                        preferenceKey = VersePreferences.LOOKUP_TRANSLATION,
-                                        currentSelection = { p -> p.lookupTranslation() },
-                                    )
-                                },
-                            )
-                        },
-                    )
-                    SettingsLinkRow(
-                        label = "Fallback Translation Info",
-                        onClick = { navigateTo(screenFactory = { FallbackTranslationInfoScreen(it) }) },
-                    )
+                    Column(modifier = Modifier.padding(horizontal = 1.5f.gridUnitsAsDp())) {
+                        SettingsValueRow(
+                            label = "Translation",
+                            value = prefs?.selectedTranslation()?.abbreviation ?: initialTranslationAbbreviation,
+                            onClick = {
+                                navigateTo(
+                                    screenFactory = {
+                                        TranslationPickerScreen(
+                                            it,
+                                            title = "Translation",
+                                            preferenceKey = VersePreferences.SELECTED_TRANSLATION,
+                                            currentSelection = { p -> p.selectedTranslation() },
+                                        )
+                                    },
+                                )
+                            },
+                        )
+                        SettingsValueRow(
+                            label = "Fallback Translation",
+                            value = prefs?.lookupTranslation()?.abbreviation ?: initialFallbackAbbreviation,
+                            onClick = {
+                                navigateTo(
+                                    screenFactory = {
+                                        TranslationPickerScreen(
+                                            it,
+                                            title = "Fallback Translation",
+                                            preferenceKey = VersePreferences.LOOKUP_TRANSLATION,
+                                            currentSelection = { p -> p.lookupTranslation() },
+                                        )
+                                    },
+                                )
+                            },
+                        )
+                        SettingsLinkRow(
+                            label = "Fallback Translation Info",
+                            onClick = { navigateTo(screenFactory = { FallbackTranslationInfoScreen(it) }) },
+                        )
+                    }
                 }
             }
         }

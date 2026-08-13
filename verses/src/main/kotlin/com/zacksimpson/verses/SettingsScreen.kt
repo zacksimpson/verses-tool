@@ -50,7 +50,11 @@ class SettingsScreen(sealedActivity: SealedLightActivity) : SimpleLightScreen<Un
                     )
 
                     Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
-                        LightScrollView(modifier = Modifier.fillMaxSize()) {
+                        LightScrollView(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(start = 1.5f.gridUnitsAsDp()),
+                        ) {
                             Column {
                                 SettingsLinkRow(
                                     label = "Translations",
@@ -99,7 +103,7 @@ internal fun SettingsLinkRow(label: String, onClick: () -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .lightClickable(onClick = onClick)
-            .padding(horizontal = 1.5f.gridUnitsAsDp(), vertical = 1f.gridUnitsAsDp()),
+            .padding(vertical = 1f.gridUnitsAsDp()),
     )
 }
 
@@ -111,7 +115,7 @@ internal fun SettingsValueRow(label: String, value: String, onClick: () -> Unit)
         modifier = Modifier
             .fillMaxWidth()
             .lightClickable(onClick = onClick)
-            .padding(horizontal = 1.5f.gridUnitsAsDp(), vertical = 1f.gridUnitsAsDp()),
+            .padding(vertical = 1f.gridUnitsAsDp()),
     ) {
         LightText(text = label, variant = LightTextVariant.Paragraph)
         LightText(text = value, variant = LightTextVariant.Heading)

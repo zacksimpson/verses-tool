@@ -99,7 +99,9 @@ class PassageScreen(
                         loadedVerses != null -> {
                             Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
                                 LightScrollView(
-                                    modifier = Modifier.fillMaxSize(),
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .padding(start = 1.5f.gridUnitsAsDp()),
                                 ) {
                                     Column(
                                         modifier = Modifier
@@ -116,10 +118,7 @@ class PassageScreen(
                                                     )
                                                 },
                                             )
-                                            .padding(
-                                                horizontal = 1.5f.gridUnitsAsDp(),
-                                                vertical = 1.5f.gridUnitsAsDp(),
-                                            ),
+                                            .padding(vertical = 1.5f.gridUnitsAsDp()),
                                     ) {
                                         NumberedVerseText(
                                             verses = loadedVerses,

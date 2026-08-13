@@ -151,9 +151,11 @@ class VersePickerScreen(
 
                             is ResolveState.Idle -> {
                                 LightScrollView(
-                                    modifier = Modifier.fillMaxSize(),
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .padding(start = 1.5f.gridUnitsAsDp()),
                                 ) {
-                                    Column(modifier = Modifier.padding(horizontal = 1.5f.gridUnitsAsDp())) {
+                                    Column {
                                         rows.forEach { row ->
                                             Row(modifier = Modifier.fillMaxWidth()) {
                                                 row.forEach { number ->

@@ -121,13 +121,12 @@ class VerseForDateScreen(
 
                             is VerseUiState.Loaded -> {
                                 LightScrollView(
-                                    modifier = Modifier.fillMaxSize(),
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .padding(start = 1.5f.gridUnitsAsDp()),
                                 ) {
                                     Column(
-                                        modifier = Modifier.padding(
-                                            horizontal = 1.5f.gridUnitsAsDp(),
-                                            vertical = 1.5f.gridUnitsAsDp(),
-                                        ),
+                                        modifier = Modifier.padding(vertical = 1.5f.gridUnitsAsDp()),
                                     ) {
                                         VerseText(
                                             text = mode.text,
