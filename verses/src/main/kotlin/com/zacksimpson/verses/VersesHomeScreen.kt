@@ -34,6 +34,7 @@ import com.thelightphone.sdk.ui.LightThemeTokens
 import com.thelightphone.sdk.ui.LightTopBar
 import com.thelightphone.sdk.ui.LightTopBarCenter
 import com.thelightphone.sdk.ui.gridUnitsAsDp
+import com.thelightphone.sdk.ui.lightClickable
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.time.LocalDate
@@ -108,35 +109,49 @@ class VersesHomeScreen(sealedActivity: SealedLightActivity) :
                                 modifier = Modifier.fillMaxSize(),
                             ) {
                                 Column(
-                                    modifier = Modifier
-                                        .combinedClickable(
-                                            interactionSource = null,
-                                            indication = null,
-                                            onClick = {},
-                                            onLongClick = {
-                                                navigateTo(
-                                                    screenFactory = {
-                                                        VerseActionsScreen(
-                                                            it,
-                                                            today,
-                                                            mode.reference,
-                                                            mode.text,
-                                                            mode.translation,
-                                                        )
-                                                    },
-                                                )
-                                            },
-                                        )
-                                        .padding(
-                                            horizontal = 1.5f.gridUnitsAsDp(),
-                                            vertical = 1.5f.gridUnitsAsDp(),
-                                        ),
+                                    modifier = Modifier.padding(
+                                        horizontal = 1.5f.gridUnitsAsDp(),
+                                        vertical = 1.5f.gridUnitsAsDp(),
+                                    ),
                                 ) {
                                     VerseText(
                                         text = mode.text,
-                                        modifier = Modifier.padding(bottom = 0.5f.gridUnitsAsDp()),
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .combinedClickable(
+                                                interactionSource = null,
+                                                indication = null,
+                                                onClick = {},
+                                                onLongClick = {
+                                                    navigateTo(
+                                                        screenFactory = {
+                                                            VerseActionsScreen(
+                                                                it,
+                                                                today,
+                                                                mode.reference,
+                                                                mode.text,
+                                                                mode.translation,
+                                                            )
+                                                        },
+                                                    )
+                                                },
+                                            )
+                                            .padding(bottom = 0.5f.gridUnitsAsDp()),
                                     )
-                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        modifier = Modifier.lightClickable(
+                                            onClick = {
+                                                bookAndChapterFrom(mode.reference)?.let { (book, chapter) ->
+                                                    navigateTo(
+                                                        screenFactory = {
+                                                            PassageScreen(it, "$book $chapter", null, mode.translation)
+                                                        },
+                                                    )
+                                                }
+                                            },
+                                        ),
+                                    ) {
                                         LightText(
                                             text = "${mode.reference} (${mode.translation.abbreviation})",
                                             variant = LightTextVariant.Copy,

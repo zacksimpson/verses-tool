@@ -99,13 +99,7 @@ class VersePickerScreen(
                 }
                 val rateLimiter = LookupRateLimiter(lightContext.dataStore)
                 if (!rateLimiter.shouldAllowLookup(translation)) {
-                    resolveState = ResolveState.Error(
-                        "Today's lookup limit for ${translation.abbreviation} has been reached. " +
-                            "There's a soft daily limit per device on lookups for copyrighted " +
-                            "translations, to honor their API terms. Lookups for it pause until the " +
-                            "next day. You can always switch to a public domain translation in " +
-                            "Settings to continue reading.",
-                    )
+                    resolveState = ResolveState.Error(dailyLimitReachedMessage(translation))
                     return@launch
                 }
                 val result = fetcher.fetchVerses(translation, reference)
