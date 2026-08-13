@@ -11,9 +11,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -34,15 +37,17 @@ import com.thelightphone.sdk.ui.gridUnitsAsDp
 import java.time.LocalDate
 
 /**
- * shows the passage [VersePickerScreen] already resolved, no fetch here. tap does
- * nothing, long-press opens the actions menu, same as the other verse screens.
- * smaller text with inline verse numbers, since a passage at heading size gets
+ * shows a passage. usually already resolved by [VersePickerScreen], but pass null for
+ * [initialVerses] (e.g. jumping here straight from a reference tap) and this fetches the
+ * chapter itself, the top bar showing immediately and a centered loading state while it
+ * resolves. tap does nothing, long-press opens the actions menu, same as the other verse
+ * screens. smaller text with inline verse numbers, since a passage at heading size gets
  * unwieldy fast.
  */
 class PassageScreen(
     sealedActivity: SealedLightActivity,
     private val reference: String,
-    private val verses: List<VerseSegment>,
+    private val initialVerses: List<VerseSegment>?,
     private val translation: Translation,
 ) : SimpleLightScreen<Unit>(sealedActivity) {
 
@@ -52,10 +57,29 @@ class PassageScreen(
         val today = remember { LocalDate.now().toString() }
         val notesRepo = remember { VerseNotesRepository(lightContext.dataStore) }
         val notes by notesRepo.notes.collectAsState(initial = emptyList())
-        // match on reference too, not just date, since a lookup can share a date with the daily verse
+        // exact reference match only, a note is about a specific verse, not the whole
+        // chapter it happens to be in
         val hasNote = remember(notes, reference) { notes.any { it.date == today && it.reference == reference } }
+
+        var verses by remember { mutableStateOf(initialVerses) }
+        var resolveError by remember { mutableStateOf<String?>(null) }
+
+        if (initialVerses == null) {
+            LaunchedEffect(reference) {
+                val fetcher = VerseFetcher()
+                try {
+                    when (val result = resolveChapterForReference(lightContext.dataStore, fetcher, translation, reference)) {
+                        is ChapterJumpResult.Success -> verses = result.verses
+                        is ChapterJumpResult.Failed -> resolveError = result.message
+                    }
+                } finally {
+                    fetcher.close()
+                }
+            }
+        }
+
         // flat text is all the actions screen needs, verse boundaries don't matter for copy/memorize/notes
-        val flatText = remember(verses) { joinVerseTexts(verses.map { it.text }) }
+        val flatText = remember(verses) { verses?.let { joinVerseTexts(it.map { v -> v.text }) } ?: "" }
 
         LightTheme(colors = themeColors) {
             SwipeBackContainer(onSwipeBack = { goBack(Unit) }) {
@@ -70,47 +94,77 @@ class PassageScreen(
                         modifier = Modifier.padding(bottom = 0.5f.gridUnitsAsDp()),
                     )
 
-                    Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
-                        LightScrollView(
-                            modifier = Modifier.fillMaxSize(),
-                        ) {
-                            Column(
-                                modifier = Modifier
-                                    .combinedClickable(
-                                        interactionSource = null,
-                                        indication = null,
-                                        onClick = {},
-                                        onLongClick = {
-                                            navigateTo(
-                                                screenFactory = {
-                                                    VerseActionsScreen(it, today, reference, flatText, translation)
+                    val loadedVerses = verses
+                    when {
+                        loadedVerses != null -> {
+                            Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
+                                LightScrollView(
+                                    modifier = Modifier.fillMaxSize(),
+                                ) {
+                                    Column(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .combinedClickable(
+                                                interactionSource = null,
+                                                indication = null,
+                                                onClick = {},
+                                                onLongClick = {
+                                                    navigateTo(
+                                                        screenFactory = {
+                                                            VerseActionsScreen(it, today, reference, flatText, translation)
+                                                        },
+                                                    )
                                                 },
                                             )
-                                        },
-                                    )
-                                    .padding(
-                                        horizontal = 1.5f.gridUnitsAsDp(),
-                                        vertical = 1.5f.gridUnitsAsDp(),
-                                    ),
-                            ) {
-                                NumberedVerseText(
-                                    verses = verses,
-                                    modifier = Modifier.padding(bottom = 0.5f.gridUnitsAsDp()),
-                                )
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    LightText(
-                                        text = "(${translation.abbreviation})",
-                                        variant = LightTextVariant.Copy,
-                                    )
-                                    if (hasNote) {
-                                        LightIcon(
-                                            icon = LightIcons.PENCIL,
-                                            size = 1f,
-                                            modifier = Modifier.padding(start = 0.4f.gridUnitsAsDp()),
-                                            contentDescription = "Note saved",
+                                            .padding(
+                                                horizontal = 1.5f.gridUnitsAsDp(),
+                                                vertical = 1.5f.gridUnitsAsDp(),
+                                            ),
+                                    ) {
+                                        NumberedVerseText(
+                                            verses = loadedVerses,
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(bottom = 0.5f.gridUnitsAsDp()),
                                         )
+                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                            LightText(
+                                                text = "(${translation.abbreviation})",
+                                                variant = LightTextVariant.Copy,
+                                            )
+                                            if (hasNote) {
+                                                LightIcon(
+                                                    icon = LightIcons.PENCIL,
+                                                    size = 1f,
+                                                    modifier = Modifier.padding(start = 0.4f.gridUnitsAsDp()),
+                                                    contentDescription = "Note saved",
+                                                )
+                                            }
+                                        }
                                     }
                                 }
+                            }
+                        }
+
+                        resolveError != null -> {
+                            Box(
+                                modifier = Modifier.weight(1f).fillMaxWidth(),
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                LightText(
+                                    text = resolveError.orEmpty(),
+                                    variant = LightTextVariant.Copy,
+                                    modifier = Modifier.padding(horizontal = 1.5f.gridUnitsAsDp()),
+                                )
+                            }
+                        }
+
+                        else -> {
+                            Box(
+                                modifier = Modifier.weight(1f).fillMaxWidth(),
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                LightText(text = "Loading…", variant = LightTextVariant.Copy)
                             }
                         }
                     }

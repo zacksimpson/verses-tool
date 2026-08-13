@@ -1,6 +1,7 @@
 package com.zacksimpson.verses
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -10,7 +11,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.thelightphone.sdk.SealedLightActivity
@@ -26,11 +30,14 @@ import com.thelightphone.sdk.ui.LightThemeTokens
 import com.thelightphone.sdk.ui.LightTopBar
 import com.thelightphone.sdk.ui.LightTopBarCenter
 import com.thelightphone.sdk.ui.gridUnitsAsDp
-import com.thelightphone.sdk.ui.lightClickable
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 
 private const val CHAPTER_GRID_COLUMNS = 3
 
-/** third screen of the lookup flow, a grid of chapter numbers for [book]. */
+/** third screen of the lookup flow, a grid of chapter numbers for [book]. tap a chapter
+ *  to pick a specific verse or range within it; long-press a chapter to jump straight
+ *  into reading the whole thing. */
 class ChapterPickerScreen(
     sealedActivity: SealedLightActivity,
     private val book: String,
@@ -39,8 +46,11 @@ class ChapterPickerScreen(
     @Composable
     override fun Content() {
         val themeColors by LightThemeController.colors.collectAsState()
+        val scope = rememberCoroutineScope()
         val chapterCount = remember(book) { BibleBooks.all.first { it.name == book }.chapterCount }
         val rows = remember(chapterCount) { (1..chapterCount).chunked(CHAPTER_GRID_COLUMNS) }
+        // guards against a fast double-long-press pushing two PassageScreen instances
+        var isJumpingToChapter by remember { mutableStateOf(false) }
 
         LightTheme(colors = themeColors) {
             SwipeBackContainer(onSwipeBack = { goBack(Unit) }) {
@@ -66,11 +76,29 @@ class ChapterPickerScreen(
                                             Box(
                                                 modifier = Modifier
                                                     .weight(1f)
-                                                    .lightClickable {
-                                                        navigateTo(
-                                                            screenFactory = { VersePickerScreen(it, book, chapter) },
-                                                        )
-                                                    }
+                                                    .combinedClickable(
+                                                        interactionSource = null,
+                                                        indication = null,
+                                                        onClick = {
+                                                            navigateTo(
+                                                                screenFactory = { VersePickerScreen(it, book, chapter) },
+                                                            )
+                                                        },
+                                                        onLongClick = {
+                                                            if (!isJumpingToChapter) {
+                                                                isJumpingToChapter = true
+                                                                scope.launch {
+                                                                    val translation = lightContext.dataStore.data.first().lookupTranslation()
+                                                                    navigateTo(
+                                                                        screenFactory = {
+                                                                            PassageScreen(it, "$book $chapter", null, translation)
+                                                                        },
+                                                                        resultCallback = { isJumpingToChapter = false },
+                                                                    )
+                                                                }
+                                                            }
+                                                        },
+                                                    )
                                                     .padding(vertical = 1f.gridUnitsAsDp()),
                                                 contentAlignment = Alignment.Center,
                                             ) {

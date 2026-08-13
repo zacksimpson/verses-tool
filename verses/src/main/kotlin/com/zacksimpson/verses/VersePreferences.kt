@@ -18,6 +18,14 @@ internal object VersePreferences {
     // separate from SELECTED_TRANSLATION (daily verse only), this is what the lookup
     // feature fetches in, defaulting to KJV
     val LOOKUP_TRANSLATION = stringPreferencesKey("lookup_translation")
+
+    // one-slot cache for the last chapter fetched via the reference-tap shortcut, so
+    // backing out and tapping the same reference again same day doesn't re-fetch. keyed
+    // by translation+book+chapter together, not just date, since only one chapter fits
+    // in the slot at a time
+    val CACHED_CHAPTER_DATE = stringPreferencesKey("cached_chapter_date")
+    val CACHED_CHAPTER_KEY = stringPreferencesKey("cached_chapter_key")
+    val CACHED_CHAPTER_VERSES = stringPreferencesKey("cached_chapter_verses")
 }
 
 internal fun Preferences.selectedTranslation(): Translation =
