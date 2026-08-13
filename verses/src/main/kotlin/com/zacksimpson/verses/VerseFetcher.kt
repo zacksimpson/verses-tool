@@ -80,7 +80,9 @@ internal class VerseFetcher {
         when (translation.source) {
             is TranslationSource.PublicDomain -> fetchChapter(translation, book, chapter).map { it.verses }
             is TranslationSource.Esv, is TranslationSource.YouVersion -> {
-                val verseCount = BibleBooks.all.first { it.name == book }.versesPerChapter[chapter - 1]
+                val verseCount = BibleBooks.all.firstOrNull { it.name == book }
+                    ?.versesPerChapter?.getOrNull(chapter - 1)
+                    ?: return Result.failure(IllegalArgumentException("Unknown book/chapter '$book $chapter'."))
                 fetchVerses(translation, "$book $chapter:1-$verseCount")
             }
         }

@@ -11,8 +11,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -58,6 +60,8 @@ class VersesHomeScreen(sealedActivity: SealedLightActivity) :
         val notes by notesRepo.notes.collectAsState(initial = emptyList())
         val today = remember { LocalDate.now().toString() }
         val hasNote = remember(notes) { notes.any { it.date == today } }
+        // guards against a fast double-tap pushing two PassageScreen instances
+        var isJumpingToChapter by remember { mutableStateOf(false) }
 
         LightTheme(colors = themeColors) {
             Column(
@@ -142,12 +146,16 @@ class VersesHomeScreen(sealedActivity: SealedLightActivity) :
                                         verticalAlignment = Alignment.CenterVertically,
                                         modifier = Modifier.lightClickable(
                                             onClick = {
-                                                bookAndChapterFrom(mode.reference)?.let { (book, chapter) ->
-                                                    navigateTo(
-                                                        screenFactory = {
-                                                            PassageScreen(it, "$book $chapter", null, mode.translation)
-                                                        },
-                                                    )
+                                                if (!isJumpingToChapter) {
+                                                    bookAndChapterFrom(mode.reference)?.let { (book, chapter) ->
+                                                        isJumpingToChapter = true
+                                                        navigateTo(
+                                                            screenFactory = {
+                                                                PassageScreen(it, "$book $chapter", null, mode.translation)
+                                                            },
+                                                            resultCallback = { isJumpingToChapter = false },
+                                                        )
+                                                    }
                                                 }
                                             },
                                         ),
