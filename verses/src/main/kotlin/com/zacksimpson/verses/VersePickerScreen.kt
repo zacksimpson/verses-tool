@@ -1,6 +1,7 @@
 package com.zacksimpson.verses
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -64,6 +65,7 @@ internal fun resolvePassageReference(book: String, chapter: Int, anchor: Int, ta
  *
  * tapping a verse number anchors a range start (underlined), tapping another closes the
  * range and resolves it. tapping the anchor again resolves to that single verse.
+ * long-pressing a verse skips the range dance and resolves straight to that one verse.
  */
 class VersePickerScreen(
     sealedActivity: SealedLightActivity,
@@ -99,13 +101,7 @@ class VersePickerScreen(
                 }
                 val rateLimiter = LookupRateLimiter(lightContext.dataStore)
                 if (!rateLimiter.shouldAllowLookup(translation)) {
-                    resolveState = ResolveState.Error(
-                        "Today's lookup limit for ${translation.abbreviation} has been reached. " +
-                            "There's a soft daily limit per device on lookups for copyrighted " +
-                            "translations, to honor their API terms. Lookups for it pause until the " +
-                            "next day. You can always switch to a public domain translation in " +
-                            "Settings to continue reading.",
-                    )
+                    resolveState = ResolveState.Error(dailyLimitReachedMessage(translation))
                     return@launch
                 }
                 val result = fetcher.fetchVerses(translation, reference)
@@ -173,6 +169,18 @@ class VersePickerScreen(
                                                                 confirmSelection(anchor, number)
                                                             }
                                                         },
+                                                        onLongClick = {
+                                                            val anchor = rangeStart
+                                                            if (anchor == null) {
+                                                                confirmSelection(number, number)
+                                                            } else {
+                                                                // already mid-range-selection, so a long-press just
+                                                                // closes the range like a normal tap would, never
+                                                                // jumps to a single verse
+                                                                rangeStart = null
+                                                                confirmSelection(anchor, number)
+                                                            }
+                                                        },
                                                     )
                                                 }
                                                 repeat(VERSE_GRID_COLUMNS - row.size) {
@@ -192,11 +200,16 @@ class VersePickerScreen(
 }
 
 @Composable
-private fun RowScope.VerseCell(number: Int, isAnchor: Boolean, onClick: () -> Unit) {
+private fun RowScope.VerseCell(number: Int, isAnchor: Boolean, onClick: () -> Unit, onLongClick: () -> Unit) {
     Box(
         modifier = Modifier
             .weight(1f)
-            .lightClickable(onClick = onClick)
+            .combinedClickable(
+                interactionSource = null,
+                indication = null,
+                onClick = onClick,
+                onLongClick = onLongClick,
+            )
             .padding(vertical = 0.75f.gridUnitsAsDp()),
         contentAlignment = Alignment.Center,
     ) {

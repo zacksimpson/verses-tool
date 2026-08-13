@@ -10,6 +10,15 @@ import java.time.LocalDate
 
 internal const val DAILY_LOOKUP_LIMIT = 100
 
+/** shared wording for a lookup blocked by [LookupRateLimiter.shouldAllowLookup], so a
+ *  reference-tap shortcut and the manual lookup flow don't drift apart. */
+internal fun dailyLimitReachedMessage(translation: Translation): String =
+    "Today's lookup limit for ${translation.abbreviation} has been reached. " +
+        "There's a soft daily limit per device on lookups for copyrighted " +
+        "translations, to honor their API terms. Lookups for it pause until the " +
+        "next day. You can always switch to a public domain translation in " +
+        "Settings to continue reading."
+
 /** pure logic kept separate from the DataStore class below so it's unit testable
  *  without android. */
 internal object LookupRateLimit {

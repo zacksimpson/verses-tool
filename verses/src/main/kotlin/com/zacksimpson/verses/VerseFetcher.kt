@@ -72,6 +72,21 @@ internal class VerseFetcher {
                 )
         }
 
+    /** the whole chapter [book] [chapter], for jumping straight from a reference into
+     *  full-chapter reading. public domain sources use the free [fetchChapter]; copyrighted
+     *  sources go through the same rate-limited single-passage lookup a manual search uses,
+     *  since free chapter browsing is public domain only. */
+    suspend fun fetchWholeChapter(translation: Translation, book: String, chapter: Int): Result<List<VerseSegment>> =
+        when (translation.source) {
+            is TranslationSource.PublicDomain -> fetchChapter(translation, book, chapter).map { it.verses }
+            is TranslationSource.Esv, is TranslationSource.YouVersion -> {
+                val verseCount = BibleBooks.all.firstOrNull { it.name == book }
+                    ?.versesPerChapter?.getOrNull(chapter - 1)
+                    ?: return Result.failure(IllegalArgumentException("Unknown book/chapter '$book $chapter'."))
+                fetchVerses(translation, "$book $chapter:1-$verseCount")
+            }
+        }
+
     fun close() {
         if (esvApiLazy.isInitialized()) esvApi.close()
         if (youVersionApiLazy.isInitialized()) youVersionApi.close()
