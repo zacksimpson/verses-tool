@@ -61,13 +61,12 @@ class ViewNoteScreen(
 
                     Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
                         LightScrollView(
-                            modifier = Modifier.fillMaxSize(),
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(start = 1.5f.gridUnitsAsDp()),
                         ) {
                             Column(
-                                modifier = Modifier.padding(
-                                    horizontal = 1.5f.gridUnitsAsDp(),
-                                    vertical = 1.5f.gridUnitsAsDp(),
-                                ),
+                                modifier = Modifier.padding(vertical = 1.5f.gridUnitsAsDp()),
                             ) {
                                 LightText(
                                     text = formatDisplayDate(note.date),

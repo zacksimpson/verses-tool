@@ -41,14 +41,16 @@ class AdvancedSettingsScreen(sealedActivity: SealedLightActivity) : SimpleLightS
                         modifier = Modifier.padding(bottom = 1f.gridUnitsAsDp()),
                     )
 
-                    SettingsLinkRow(
-                        label = "View API Logs",
-                        onClick = { navigateTo(screenFactory = { ApiLogsScreen(it) }) },
-                    )
-                    SettingsLinkRow(
-                        label = "Copyright Info",
-                        onClick = { navigateTo(screenFactory = { CopyrightInfoScreen(it) }) },
-                    )
+                    Column(modifier = Modifier.padding(horizontal = 1.5f.gridUnitsAsDp())) {
+                        SettingsLinkRow(
+                            label = "View API Logs",
+                            onClick = { navigateTo(screenFactory = { ApiLogsScreen(it) }) },
+                        )
+                        SettingsLinkRow(
+                            label = "Copyright Info",
+                            onClick = { navigateTo(screenFactory = { CopyrightInfoScreen(it) }) },
+                        )
+                    }
                 }
             }
         }

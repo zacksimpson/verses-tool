@@ -47,9 +47,11 @@ class CopyrightInfoScreen(sealedActivity: SealedLightActivity) : SimpleLightScre
                     )
 
                     LightScrollView(
-                        modifier = Modifier.fillMaxSize(),
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(start = 1.5f.gridUnitsAsDp()),
                     ) {
-                        Column(modifier = Modifier.padding(horizontal = 1.5f.gridUnitsAsDp())) {
+                        Column {
                             Translation.entries.forEachIndexed { index, translation ->
                                 val isLast = index == Translation.entries.lastIndex
                                 NoticeHeader(translation.displayName)

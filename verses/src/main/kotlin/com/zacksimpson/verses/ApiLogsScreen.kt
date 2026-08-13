@@ -54,7 +54,9 @@ class ApiLogsScreen(sealedActivity: SealedLightActivity) : SimpleLightScreen<Uni
 
                     Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
                         LightScrollView(
-                            modifier = Modifier.fillMaxSize(),
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(start = 1.5f.gridUnitsAsDp()),
                         ) {
                             Column {
                                 val translations = Translation.entries.filter { it.source !is TranslationSource.PublicDomain }
@@ -98,7 +100,7 @@ private fun StatRow(label: String, value: String) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 1.5f.gridUnitsAsDp(), vertical = 1f.gridUnitsAsDp()),
+            .padding(vertical = 1f.gridUnitsAsDp()),
     ) {
         LightText(text = label, variant = LightTextVariant.Paragraph)
         LightText(text = value, variant = LightTextVariant.Heading)

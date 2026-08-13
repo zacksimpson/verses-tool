@@ -81,7 +81,9 @@ class AllBookmarksScreen(
                             )
                         } else {
                             LightScrollView(
-                                modifier = Modifier.fillMaxSize(),
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(start = 1.5f.gridUnitsAsDp()),
                             ) {
                                 sorted.forEach { bookmark ->
                                     BookmarkRow(
@@ -108,10 +110,7 @@ private fun BookmarkRow(bookmark: VerseBookmark, onClick: () -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .lightClickable(onClick = onClick)
-            .padding(
-                horizontal = 1.5f.gridUnitsAsDp(),
-                vertical = 0.75f.gridUnitsAsDp(),
-            ),
+            .padding(vertical = 0.75f.gridUnitsAsDp()),
     ) {
         LightText(
             text = "${bookmark.reference} (${bookmark.resolvedTranslation().abbreviation})",

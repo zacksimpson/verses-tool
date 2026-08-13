@@ -102,7 +102,9 @@ class AllNotesScreen(
                             )
                         } else {
                             LightScrollView(
-                                modifier = Modifier.fillMaxSize(),
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(start = 1.5f.gridUnitsAsDp()),
                             ) {
                                 sorted.forEach { note ->
                                     NoteRow(
@@ -134,10 +136,7 @@ private fun NoteRow(note: VerseNote, onClick: () -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .lightClickable(onClick = onClick)
-            .padding(
-                horizontal = 1.5f.gridUnitsAsDp(),
-                vertical = 0.75f.gridUnitsAsDp(),
-            ),
+            .padding(vertical = 0.75f.gridUnitsAsDp()),
     ) {
         LightText(
             text = "${note.reference} • ${formatRelativeDate(note.date)}",
