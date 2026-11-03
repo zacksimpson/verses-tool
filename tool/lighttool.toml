@@ -1,8 +1,8 @@
 [tool]
 id = "com.zacksimpson.verses"
 label = "Verses"
-versionCode = 6
-versionName = "1.0.1"
+versionCode = 7
+versionName = "1.1.0"
 permissions = ["android.permission.INTERNET"]
 # for the lightos emulator, use the line below and build with -DlightSdk.allowAltServerPackage=true
 # serverPackage = "com.thelightphone.sdk.emulator"
