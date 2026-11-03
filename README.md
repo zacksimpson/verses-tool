@@ -28,13 +28,17 @@ A focused Bible reading tool for the Light Phone III, built with the official [L
 * Berean Standard Bible (BSB)
 * (More to come!)
 
-### About Fallback Translations
-Most Bible translations (eg ESV, NIV, NASB, etc) contain inherent copyright limitations or rules around their API. KJV and BSB are exceptions to this, because they are both in the public domain. Because of that, verse and passage lookups default to KJV, so browsing around doesn't eat into the shared API budget the copyrighted translations share.
+### API Keys
+KJV and BSB are public domain and work out of the box. ESV, NIV and NASB need a free key of your own, entered in **Settings → Translations → API Keys**:
+* ESV: get a key at https://api.esv.org
+* NIV and NASB: get an app key at https://platform.youversion.com/platform/get-started
 
-> [!NOTE]
-> **You're always welcome to change the Fallback Translation!** Head to **Settings → Fallback Translation** and pick whichever translation you'd like lookups to use instead.
+Keys are stored only on your device and are only sent to the service they belong to.
 
-At this time, to save on expenses, Verses uses a shared API as I determine the demand for the tool – so we're all contributing to the same rate limits :) to help with this, there is a soft per-device daily limit on lookups for copyrighted translations to honor their respective API limitations. In the unlikely event a user hits their device limit, lookups for that translation pause until the next day. You can switch to a public domain translation anytime in Settings to keep going.
+To honor each service's API limits, there is a soft per-device daily limit on lookups for copyrighted translations. In the unlikely event you hit it, lookups for that translation pause until the next day. You can switch to a public domain translation anytime in Settings to keep going.
+
+### Privacy
+Verses has no analytics, tracking or ads. The only data that leaves your device is the verse reference you request, sent with your key to the translation's service (api.esv.org, api.youversion.com, or bible.helloao.org for KJV and BSB).
 
 ---
 
@@ -45,37 +49,14 @@ At this time, to save on expenses, Verses uses a shared API as I determine the d
 <details>
 <summary><strong>Building from Source</strong></summary>
 
-**ESV**
-
-1. Get a free ESV API key at https://api.esv.org (sign up, create an API application).
-2. Add it to this repo's root `local.properties` (gitignored, create the file if it
-   doesn't exist):
-
-   ```
-   esvApiKey=your_key_here
-   ```
-
-**YouVersion Platform (NIV, NASB)**
-
-1. Request an app key at https://developers.youversion.com (sign up, create an app).
-2. Add it to the same `local.properties` file:
-
-   ```
-   youVersionAppKey=your_key_here
-   ```
-
-**Build**
-
 Open in Android Studio, or build from the command line:
 
 ```
-./gradlew :verses:assembleDebug
+./gradlew :tool:assembleDebug
 ```
 
-Without a key, the tool shows a message asking you to add one instead of making a
-network call. Run on the [LightOS emulator](docs/system_app) for full compatibility,
-or any Android emulator/device for everyday development – see `docs/` (inherited from
-light-sdk) for details.
+This repo is the Light SDK with Verses as the `tool` module, so everything outside `tool/` is
+unmodified upstream. See `docs/` for the emulator and sideloading instructions.
 
 </details>
 
