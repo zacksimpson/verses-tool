@@ -3,8 +3,8 @@ package com.zacksimpson.verses
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-// Fixtures below are real responses captured live from api.esv.org (include-verse-numbers=
-// true, indent-poetry-lines=4, indent-paragraphs=2) — not hand-constructed — so these tests
+// fixtures below are real responses captured live from api.esv.org (include-verse-numbers=
+// true, indent-poetry-lines=4, indent-paragraphs=2), not hand-constructed, so these tests
 // pin down the actual raw format, not an assumption about it.
 class EsvTextParsingTest {
 

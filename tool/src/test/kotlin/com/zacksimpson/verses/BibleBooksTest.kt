@@ -12,7 +12,7 @@ class BibleBooksTest {
 
     @Test
     fun `every book name is recognized by UsfmReference`() {
-        // toPassageId throws on an unknown book name — this indirectly checks every
+        // toPassageId throws on an unknown book name, so this indirectly checks every
         // name here matches UsfmReference's own book list, without needing access to
         // its private map.
         for (book in BibleBooks.all) {

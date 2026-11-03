@@ -3,8 +3,8 @@ package com.zacksimpson.verses
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-// Fixtures below are real format=html responses captured live from api.youversion.com for
-// NIV (111) and NASB (2692) — not hand-constructed — so these tests pin down the actual raw
+// fixtures below are real format=html responses captured live from api.youversion.com for
+// NIV (111) and NASB (2692), not hand-constructed, so these tests pin down the actual raw
 // markup, not an assumption about it.
 class YouVersionHtmlParsingTest {
 

@@ -5,7 +5,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
-/** Tests HelloAoParsing directly against real captured JSON shapes (confirmed live
+/** tests HelloAoParsing directly against real captured JSON shapes (confirmed live
  *  against bible.helloao.org) rather than hitting the network. */
 class HelloAoApiTest {
     private val json = Json { ignoreUnknownKeys = true }
@@ -78,8 +78,8 @@ class HelloAoApiTest {
 
     @Test
     fun `a single poetic line with no second line is still marked poetic, not plain prose`() {
-        // A verse whose only poetic content is one "poem":1 segment (no "poem":2, so no
-        // real line break) — the exact shape that used to collapse to a string
+        // a verse whose only poetic content is one "poem":1 segment (no "poem":2, so no
+        // real line break), the exact shape that used to collapse to a string
         // indistinguishable from plain prose before POETIC_LINE_MARKER was added.
         val body = """
             {"chapter":{"number":23,"content":[

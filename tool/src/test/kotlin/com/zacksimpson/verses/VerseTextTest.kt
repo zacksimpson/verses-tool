@@ -47,8 +47,8 @@ class VerseTextTest {
 
     @Test
     fun `isPoeticText is true for a single unindented poetic line, unlike a plain indent-based check`() {
-        // Regression test: indent level 0 means no POETIC_INDENT_UNIT is present, so a
-        // check that only looked for "\n" or a leading indent would miss this — the
+        // regression test: indent level 0 means no POETIC_INDENT_UNIT is present, so a
+        // check that only looked for "\n" or a leading indent would miss this, the
         // marker is what makes a lone poetic line still distinguishable from prose.
         assertTrue(isPoeticText("${POETIC_LINE_MARKER}I shall not want."))
     }
@@ -81,7 +81,7 @@ class VerseTextTest {
 
     @Test
     fun `joinVerseTexts breaks a single unindented poetic verse away from neighboring prose`() {
-        // The exact scenario this fix targets: a single-line poetic verse (e.g. OT poetry
+        // the exact scenario this fix targets: a single-line poetic verse (e.g. OT poetry
         // quoted in NT prose) must not silently merge into the surrounding paragraph.
         val joined = joinVerseTexts(
             listOf(
