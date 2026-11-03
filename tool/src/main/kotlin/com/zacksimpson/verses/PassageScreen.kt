@@ -37,12 +37,10 @@ import com.thelightphone.sdk.ui.gridUnitsAsDp
 import java.time.LocalDate
 
 /**
- * shows a passage. usually already resolved by [VersePickerScreen], but pass null for
- * [initialVerses] (e.g. jumping here straight from a reference tap) and this fetches the
- * chapter itself, the top bar showing immediately and a centered loading state while it
- * resolves. tap does nothing, long-press opens the actions menu, same as the other verse
- * screens. smaller text with inline verse numbers, since a passage at heading size gets
- * unwieldy fast.
+ * shows a passage. usually [VersePickerScreen] has already resolved it. pass null for
+ * [initialVerses] (e.g. from a reference tap) and this fetches the chapter itself, with a
+ * loading state in the middle. tap does nothing, long-press opens the actions menu. the
+ * text is smaller, with inline verse numbers, since heading size gets unwieldy fast.
  */
 class PassageScreen(
     sealedActivity: SealedLightActivity,

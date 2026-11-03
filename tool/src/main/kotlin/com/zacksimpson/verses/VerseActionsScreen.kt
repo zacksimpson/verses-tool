@@ -59,9 +59,8 @@ class VerseActionsViewModel(
     }
 }
 
-/** long-press action sheet for a verse: copy, memorize, bookmark (or remove, when
- *  already saved), add notes, and view notes when any exist. styled to match
- *  reminders-tool's action sheet. */
+/** long-press action sheet for a verse: copy, memorize, bookmark (or remove, when already
+ *  saved), add notes, and view notes when any exist. */
 class VerseActionsScreen(
     sealedActivity: SealedLightActivity,
     private val date: String,

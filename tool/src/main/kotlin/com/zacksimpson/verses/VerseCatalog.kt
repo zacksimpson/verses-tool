@@ -1,11 +1,10 @@
 package com.zacksimpson.verses
 
 /**
- * curated verse references, one shown per day. no bible api offers an actual
- * verse-of-the-day feed, every implementation works by picking from a list like this and
- * fetching the passage live. the order here doesn't matter, [VerseSelector] arranges
- * them so a year never repeats a verse or shows the same book two days running. keep
- * ranges inside one chapter.
+ * verse references, one shown per day. no bible api has a verse of the day feed, so the app
+ * picks from this list and fetches the passage live. the order here doesn't matter,
+ * [VerseSelector] arranges them so a year never repeats a verse or shows the same book two
+ * days in a row. keep ranges inside one chapter.
  */
 internal object VerseCatalog {
     val references: List<String> = listOf(

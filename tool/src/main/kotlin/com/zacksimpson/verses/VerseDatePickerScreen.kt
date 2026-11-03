@@ -51,10 +51,9 @@ private val MONTH_NAMES = listOf(
 private val DAY_HEADERS = listOf("S", "M", "T", "W", "T", "F", "S")
 
 /**
- * calendar month picker for browsing past verses. always opens on the current month.
- * unlike reminders-tool's picker, this never allows navigating into the future: the
- * forward chevron is a no-op on the current month, and any future day is rendered
- * blank instead of grayed out.
+ * calendar month picker for browsing past verses. always opens on the current month. it
+ * never goes into the future: the forward chevron does nothing on the current month, and
+ * future days are blank instead of grayed out.
  */
 class VerseDatePickerScreen(
     sealedActivity: SealedLightActivity,

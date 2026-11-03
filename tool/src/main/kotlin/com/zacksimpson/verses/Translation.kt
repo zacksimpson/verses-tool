@@ -1,10 +1,8 @@
 package com.zacksimpson.verses
 
-/** which backend a [Translation] is fetched through, lets [VerseFetcher] branch on the
- *  api shape instead of each individual translation, so a new youversion-backed
- *  translation only means a new enum case below. also carries the caching note shown in
- *  copyright info, since that's a property of the backend, not any one translation.
- */
+/** which backend a [Translation] is fetched through, so [VerseFetcher] branches on the api
+ *  and not on each translation. it also holds the caching note shown in copyright info,
+ *  since that depends on the backend. */
 sealed interface TranslationSource {
     val usageNote: String
 

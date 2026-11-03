@@ -24,14 +24,12 @@ import com.thelightphone.sdk.ui.LightTopBar
 import com.thelightphone.sdk.ui.LightTopBarCenter
 import com.thelightphone.sdk.ui.gridUnitsAsDp
 
-/** read-only view of this app's own usage against each copyrighted translation's api.
- *  public domain translations are never rate-limited, so they're left off.
+/** read-only view of this app's usage against each copyrighted translation's api. public
+ *  domain translations are never rate-limited, so they're left off.
  *
- *  shows this device's own enforced ceiling ([DAILY_LOOKUP_LIMIT]), not the provider's
- *  published limit. the two are easy to conflate, but our own backstop is much smaller
- *  and kicks in first, so showing the provider's number next to "Calls Today" would read
- *  as more headroom than actually exists. verses cached has no denominator for the same
- *  reason, there's no enforced cap there either, just one cache slot a day. */
+ *  calls today shows our own daily limit ([DAILY_LOOKUP_LIMIT]), not the provider's. ours is
+ *  much smaller and hits first, so the provider's number would suggest headroom that isn't
+ *  there. verses cached has no limit shown because there's just one cache slot a day. */
 class ApiLogsScreen(sealedActivity: SealedLightActivity) : SimpleLightScreen<Unit>(sealedActivity) {
 
     @Composable

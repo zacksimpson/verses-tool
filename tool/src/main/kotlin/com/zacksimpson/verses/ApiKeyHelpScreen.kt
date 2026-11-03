@@ -64,8 +64,7 @@ enum class ApiKeyService(
     ),
 }
 
-/** how to sign up for a key, a qr code straight to the right signup page like the
- *  weather example's attribution screen. */
+/** how to sign up for a key, with a qr code that goes straight to the signup page. */
 class ApiKeyHelpScreen(
     sealedActivity: SealedLightActivity,
     private val service: ApiKeyService,

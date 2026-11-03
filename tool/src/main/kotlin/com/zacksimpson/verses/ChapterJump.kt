@@ -28,13 +28,10 @@ internal fun bookAndChapterFrom(reference: String): Pair<String, Int>? {
     return book to chapter.toInt()
 }
 
-/** resolves the whole chapter [reference] (a bare "Book Chapter", e.g. "2 Timothy 1")
- *  refers to, for [PassageScreen]'s own self-fetch mode when it's opened straight from a
- *  reference tap rather than a resolved lookup. reuses today's cached copy of the same
- *  chapter if there is one, so backing out and tapping the same reference again doesn't
- *  fetch or count against the rate limit twice. otherwise shares the same rate limiter as
- *  a manual lookup, so a fresh fetch on a copyrighted translation still counts against its
- *  daily limit. */
+/** fetches the whole chapter [reference] (a bare "Book Chapter", e.g. "2 Timothy 1") points
+ *  to, for when PassageScreen is opened straight from a reference tap. reuses today's cached
+ *  copy of the same chapter if there is one. otherwise it goes through the same rate limit
+ *  as a manual lookup. */
 internal suspend fun resolveChapterForReference(
     dataStore: DataStore<Preferences>,
     fetcher: VerseFetcher,

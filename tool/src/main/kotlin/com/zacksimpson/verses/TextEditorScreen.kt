@@ -18,9 +18,8 @@ data class TextEditorRequest(
 )
 
 /**
- * reusable multi-line text entry backed by the LightOS keyboard. returns the entered
- * text as the result on submit, nothing if the user backs out. ported from
- * reminders-tool.
+ * text entry backed by the LightOS keyboard. returns the entered text on submit, nothing
+ * if the user backs out. multi-line unless singleLine is set.
  */
 class TextEditorScreen(
     sealedActivity: SealedLightActivity,

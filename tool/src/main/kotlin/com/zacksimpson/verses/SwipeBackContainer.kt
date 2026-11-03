@@ -26,9 +26,8 @@ private val DRAG_THRESHOLD = 80.dp
 private const val TOP_BAR_HEIGHT_UNITS = 3f
 
 /**
- * left-edge swipe-to-go-back. LightOS has no os-level back-swipe gesture, so this
- * reimplements it: edge-only start, horizontal-dominant drag, single trigger past a
- * threshold. ported from reminders-tool.
+ * left-edge swipe to go back. LightOS has no system back swipe, so this does it: the drag
+ * has to start at the left edge, be mostly horizontal, and it fires once past a threshold.
  */
 @Composable
 fun SwipeBackContainer(

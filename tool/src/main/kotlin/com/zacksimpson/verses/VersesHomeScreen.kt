@@ -79,10 +79,9 @@ class VersesHomeScreen(sealedActivity: SealedLightActivity) :
                     leftButton = LightBarButton.Icon(
                         painter = painterResource(recentsIcon),
                         onClick = { navigateTo(screenFactory = { VerseDatePickerScreen(it) }) },
-                        // ic_recents fills its box edge-to-edge, unlike LightIcons' own icons
-                        // which have built-in padding. sized close to the old BACK chevron's
-                        // 2-unit box, not reminders-tool's 1.2f, which was tuned for a
-                        // thinner icon
+                        // ic_recents fills its box edge to edge, unlike LightIcons' own icons
+                        // which have built-in padding. sized close to the old back chevron's
+                        // 2 unit box
                         sizeUnits = 1.5f,
                         contentDescription = "View past verses",
                     ),
