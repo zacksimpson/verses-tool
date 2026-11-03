@@ -35,7 +35,7 @@ enum class LightTextVariant {
 }
 
 @Composable
-internal fun variantStyle(variant: LightTextVariant): TextStyle {
+private fun variantStyle(variant: LightTextVariant): TextStyle {
     val t = LightThemeTokens.typography
     val base = when (variant) {
         LightTextVariant.Title -> t.title
@@ -80,11 +80,12 @@ fun LightText(
     align: TextAlign? = null,
     lighten: Boolean = false,
     underline: Boolean = false,
+    strikethrough: Boolean = false,
     monospace: Boolean = false,
     maxLines: Int = Int.MAX_VALUE,
     overflow: TextOverflow = TextOverflow.Clip,
+    lineHeight: TextUnit = TextUnit.Unspecified,
     color: Color? = null,
-    lineHeightMultiplier: Float? = null,
 ) {
     val colors = LightThemeTokens.colors
     val baseColor = when {
@@ -93,17 +94,23 @@ fun LightText(
         else -> colors.content
     }
 
+    val decoration = when {
+        underline && strikethrough -> TextDecoration.combine(
+            listOf(
+                TextDecoration.Underline,
+                TextDecoration.LineThrough
+            )
+        )
+
+        underline -> TextDecoration.Underline
+        strikethrough -> TextDecoration.LineThrough
+        else -> null
+    }
+
     val style = variantStyle(variant)
         .let { if (align != null) it.copy(textAlign = align) else it }
-        .let { if (underline) it.copy(textDecoration = TextDecoration.Underline) else it }
+        .let { if (decoration != null) it.copy(textDecoration = decoration) else it }
         .let { if (monospace) it.copy(fontFamily = FontFamily.Monospace) else it }
-        .let {
-            if (lineHeightMultiplier != null && it.lineHeight != TextUnit.Unspecified) {
-                it.copy(lineHeight = it.lineHeight * lineHeightMultiplier)
-            } else {
-                it
-            }
-        }
 
     Text(
         text = text,
@@ -111,6 +118,7 @@ fun LightText(
         color = baseColor.takeUnless { it == Color.Unspecified } ?: LocalContentColor.current,
         style = style,
         maxLines = maxLines,
+        lineHeight = lineHeight,
         overflow = overflow,
     )
 }

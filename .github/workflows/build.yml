@@ -32,10 +32,6 @@ jobs:
       - name: Write local.properties
         run: |
           echo "sdk.dir=$ANDROID_HOME" >> local.properties
-          echo "esvApiKey=${{ secrets.ESV_API_KEY }}" >> local.properties
-          echo "youVersionAppKey=${{ secrets.YOUVERSION_APP_KEY }}" >> local.properties
-          echo "gpr.user=${{ secrets.GH_PACKAGES_USER }}" >> local.properties
-          echo "gpr.key=${{ secrets.GH_PACKAGES_TOKEN }}" >> local.properties
 
       - name: Get app info
         run: |
@@ -43,12 +39,12 @@ jobs:
           echo "APP_NAME=verses" >> $GITHUB_ENV
 
       - name: Build release APK
-        run: ./gradlew :verses:assembleRelease
+        run: ./gradlew :tool:assembleRelease
 
       - name: Rename APK
         run: |
           mkdir -p release
-          cp verses/build/outputs/apk/release/verses-release.apk "release/${APP_NAME}_${VERSION}.apk"
+          cp tool/build/outputs/apk/release/tool-release.apk "release/${APP_NAME}_${VERSION}.apk"
 
       - name: Generate changelog
         run: |

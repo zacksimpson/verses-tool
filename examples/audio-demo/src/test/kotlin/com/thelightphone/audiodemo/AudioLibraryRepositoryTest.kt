@@ -1,0 +1,73 @@
+package com.thelightphone.audiodemo
+
+import com.thelightphone.sdk.audio.LightAudioUsage
+import java.io.File
+import java.time.Instant
+import kotlin.io.path.createTempDirectory
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertNotEquals
+import kotlin.test.assertTrue
+
+class AudioLibraryRepositoryTest {
+    @Test
+    fun sampleCatalogIncludesBundledMusicSpeechAndRemoteStreams() {
+        val clips = SampleAudioCatalog.clips
+
+        assertEquals(6, clips.size)
+        assertEquals(3, clips.count { it.source is AudioClipSource.AssetSource })
+        assertEquals(3, clips.count { it.source is AudioClipSource.UrlSource })
+        assertEquals(2, clips.count { it.kind == AudioContentKind.Speech })
+        assertEquals(1, clips.count { isExpiredDawnId(it.id) })
+        assertEquals(false, clips.any { it.id == SampleAudioCatalog.LEGACY_DAWN_ID })
+        assertEquals(LightAudioUsage.Speech, clips.first { it.id == "audrey-tang-interview" }.usage)
+        assertEquals(LightAudioUsage.Speech, clips.first { isExpiredDawnId(it.id) }.usage)
+        assertTrue(clips.any { it.usage == LightAudioUsage.Music })
+        assertTrue(clips.any { it.formatLabel == "OGG" })
+        assertTrue(clips.any { it.formatLabel == "STREAM" && it.durationMs == 0L })
+        assertTrue(clips.any { it.formatLabel == "DASH" && it.id == "shaka-dig-the-uke" })
+    }
+
+    @Test
+    fun listCombinesBundledClipsAndNewestRecordingsFirst() {
+        val filesDir = createTempDirectory("audio-library").toFile()
+        val recordings = File(filesDir, "recordings").apply { mkdirs() }
+        File(recordings, "20260101-120000.m4a").writeBytes(byteArrayOf(1))
+        File(recordings, "20260102-120000.m4a").writeBytes(byteArrayOf(2))
+        val bundled = AudioClip(
+            source = AudioClipSource.AssetSource("audio/sample.mp3"),
+            displayName = "Sample",
+            usage = LightAudioUsage.Music,
+            kind = AudioContentKind.Music,
+            durationMs = 1_000L,
+            formatLabel = "MP3",
+        )
+
+        val clips = AudioLibraryRepository(
+            filesDir = filesDir,
+            bundledClips = listOf(bundled),
+            durationResolver = { 2_000L },
+        ).list()
+
+        assertEquals(bundled, clips.first())
+        val recordingFiles = clips.drop(1).map { (it.source as AudioClipSource.FileSource).file.name }
+        assertEquals(listOf("20260102-120000.m4a", "20260101-120000.m4a"), recordingFiles)
+        assertTrue(clips.drop(1).all { it.kind == AudioContentKind.Speech && it.durationMs == 2_000L })
+    }
+
+    @Test
+    fun newRecordingFileUsesTimestampAndAvoidsCollision() {
+        val filesDir = createTempDirectory("audio-library").toFile()
+        val repository = AudioLibraryRepository(
+            filesDir = filesDir,
+            now = { Instant.parse("2026-01-02T12:00:00Z") },
+        )
+
+        val first = repository.newRecordingFile()
+        first.createNewFile()
+        val second = repository.newRecordingFile()
+
+        assertTrue(first.name.endsWith(".m4a"))
+        assertNotEquals(first.name, second.name)
+    }
+}

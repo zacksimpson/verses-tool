@@ -3,16 +3,13 @@ package com.thelightphone.sdk.ui
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
-import androidx.compose.foundation.gestures.waitForUpOrCancellation
+import androidx.compose.foundation.gestures.drag
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.foundation.text.input.rememberTextFieldState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -20,8 +17,8 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextLayoutResult
@@ -39,6 +36,7 @@ import com.thelightphone.lp3Keyboard.ui.viewmodel.EnQwertyLp3KeyboardViewModel
 import com.thelightphone.lp3Keyboard.ui.viewmodel.Lp3KeyboardViewModel
 import com.thelightphone.lp3Keyboard.ui.viewmodel.Lp3RepeatableKeyboardCallback
 import com.thelightphone.lp3Keyboard.ui.viewmodel.defaultEmojis
+import com.thelightphone.sdk.ContextLightVibrator
 import com.thelightphone.sdk.ui.keyboard.LightEmbeddedLp3Keyboard
 import com.thelightphone.sdk.ui.keyboard.TextInputKeyboardCallback
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -57,17 +55,18 @@ fun LightTextInputEditor(
     modifier: Modifier = Modifier,
     submitLabel: String = "SUBMIT",
     submitIcon: LightIconConfiguration? = null,
+    leftBottomBarItem: LightBottomBarItem? = null,
+    rightBottomBarItem: LightBottomBarItem? = null,
     showBackButton: Boolean = true,
     singleLine: Boolean = false,
-    editorKey: Any = title,
-    inputTextVariant: LightTextVariant = LightTextVariant.Heading,
     initialCaps: Boolean = false,
+    editorKey: Any = remember { Any() },
 ) {
     val currentOnSubmit by rememberUpdatedState(onSubmit)
     val hapticsEnabled = LocalHapticsEnabled.current
     val context = LocalContext.current
     val currentOnHaptic by rememberUpdatedState {
-        if (hapticsEnabled) LightHapticFeedback.click(context)
+        if (hapticsEnabled) ContextLightVibrator(context).click()
     }
     val keyboardCallback = remember(state, singleLine) {
         TextInputKeyboardCallback(
@@ -92,9 +91,10 @@ fun LightTextInputEditor(
         modifier,
         submitLabel,
         submitIcon,
+        leftBottomBarItem,
+        rightBottomBarItem,
         showBackButton,
         singleLine,
-        inputTextVariant,
     )
 }
 
@@ -115,15 +115,14 @@ fun LightTextInputEditor(
     modifier: Modifier = Modifier,
     submitLabel: String = "SUBMIT",
     submitIcon: LightIconConfiguration? = null,
+    leftBottomBarItem: LightBottomBarItem? = null,
+    rightBottomBarItem: LightBottomBarItem? = null,
     showBackButton: Boolean = true,
     singleLine: Boolean = false,
-    inputTextVariant: LightTextVariant = LightTextVariant.Heading,
 ) {
     val colors = LightThemeTokens.colors
-    val inputStyle = lightInputTextStyle(inputTextVariant)
+    val inputStyle = lightInputTextStyle()
     var textLayout by remember { mutableStateOf<TextLayoutResult?>(null) }
-    val scrollState = rememberScrollState()
-    var viewportHeightPx by remember { mutableStateOf(0) }
 
     Surface {
         Column(modifier = modifier.fillMaxSize()) {
@@ -145,26 +144,23 @@ fun LightTextInputEditor(
                     .weight(1f)
                     .fillMaxWidth()
                     .padding(horizontal = 2f.gridUnitsAsDp())
-                    .onSizeChanged { viewportHeightPx = it.height }
-                    .verticalScroll(scrollState)
                     .pointerInput(Unit) {
-                        // Only a plain tap moves the cursor — no drag-to-fine-tune-position,
-                        // since watching for our own drag here would race the enclosing
-                        // verticalScroll's gesture detector for the same touch events (both
-                        // sides trying to claim touch-slop crossing independently is fragile
-                        // and was making the text area unreliable to scroll by touch).
-                        // waitForUpOrCancellation returns null if verticalScroll claims the
-                        // gesture as a scroll first, so this naturally leaves the cursor
-                        // untouched during a scroll and only moves it for a genuine tap.
                         awaitEachGesture {
-                            awaitFirstDown(requireUnconsumed = false)
-                            val up = waitForUpOrCancellation()
-                            if (up != null) {
+                            val down = awaitFirstDown(requireUnconsumed = false)
+                            textLayout?.let { layout ->
+                                state.edit {
+                                    selection =
+                                        TextRange(layout.getOffsetForPosition(down.position))
+                                }
+                            }
+                            drag(down.id) { change ->
                                 textLayout?.let { layout ->
                                     state.edit {
-                                        selection = TextRange(layout.getOffsetForPosition(up.position))
+                                        selection =
+                                            TextRange(layout.getOffsetForPosition(change.position))
                                     }
                                 }
+                                change.consume()
                             }
                         }
                     },
@@ -205,40 +201,29 @@ fun LightTextInputEditor(
                 }
             }
 
-            // Keeps the cursor visible above the embedded keyboard as text grows past one
-            // screen: re-runs on every keystroke/selection change (not on manual scrolling,
-            // since neither textLayout nor state.selection change then) and nudges the
-            // scroll position only far enough to bring the cursor's rect back into the
-            // Box's last-measured viewport height.
-            LaunchedEffect(textLayout, state.selection) {
-                val layout = textLayout ?: return@LaunchedEffect
-                if (viewportHeightPx == 0) return@LaunchedEffect
-                val cursorPos = state.selection.min.coerceIn(0, layout.layoutInput.text.length)
-                val rect = layout.getCursorRect(cursorPos)
-                when {
-                    rect.bottom > scrollState.value + viewportHeightPx ->
-                        scrollState.scrollTo((rect.bottom - viewportHeightPx).toInt().coerceAtLeast(0))
-                    rect.top < scrollState.value ->
-                        scrollState.scrollTo(rect.top.toInt().coerceAtLeast(0))
-                }
-            }
-
-            LightEmbeddedLp3Keyboard(viewModel = viewModel)
-
-            LightBottomBar(
-                items = listOf(
-                    when (val icon = submitIcon) {
+            LightEmbeddedLp3Keyboard(
+                viewModel = viewModel,
+                additionalBottomHeight = 5f.gridUnitsAsDp(),
+                bottomBar = {
+                    val submitItem: LightBottomBarItem = when (submitIcon) {
                         null -> LightBarButton.Text(
                             text = submitLabel,
                             onClick = { onSubmit(state.text) },
                         )
                         else -> LightBarButton.LightIcon(
-                            icon = icon,
+                            icon = submitIcon,
                             onClick = { onSubmit(state.text) },
                             contentDescription = submitLabel,
                         )
-                    },
-                ),
+                    }
+                    LightBottomBar(
+                        items = if (leftBottomBarItem == null && rightBottomBarItem == null) {
+                            listOf(submitItem)
+                        } else {
+                            listOf(leftBottomBarItem, submitItem, rightBottomBarItem)
+                        },
+                    )
+                }
             )
         }
     }
@@ -267,9 +252,14 @@ private fun factory(
     }
 
 @Composable
-private fun lightInputTextStyle(variant: LightTextVariant): TextStyle {
+private fun lightInputTextStyle(): TextStyle {
     val colors = LightThemeTokens.colors
-    return variantStyle(variant).copy(color = colors.content)
+    val t = LightThemeTokens.typography
+    return t.heading
+        .copy(
+            color = colors.content,
+        )
+        .scaledForScreenHeight()
 }
 
 @Preview(widthDp = 1080 / 3, heightDp = 1240 / 3, showBackground = true)
@@ -290,7 +280,7 @@ private fun PreviewLightTextInputEditorDark() {
 fun defaultKeyboardOptions() = KeyboardOptions(
     defaultEmojis,
     displayReturn = true,
-    displayVoice = true,
+    displayVoice = false, // dictation not available in LP3 keyboard as of 0.0.19
     enableKeyAnimation = true,
-    swipeEnabled = false,
+    swipeEnabled = false
 )

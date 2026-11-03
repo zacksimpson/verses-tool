@@ -76,11 +76,18 @@ Every screen gets:
 `LightAudio` provides a minimal and opinionated API for dealing with sound input and output, both at the file (`LightAudioPlayer`,  `LightAudioRecorder`) and buffer levels (`LightAudioVoice`, `LightAudioCapture`).
 [`:examples:audio-demo`](../../examples/audio-demo) has a complete app demo of the current functionality.
 
-_NOTE: The SDK only supports foreground audio at the moment. Background audio requires some work on LightOS, and is planned._
+Attached players follow the tool screen lifecycle. Detached players opt into
+service-owned playback that can continue after the screen leaves.
 
 #### Setup and lifecycle
 
-`LightAudio` is a factory for foreground audio (only plays while tool is "in focus"), constructed from the `SealedLightActivity` your screen already receives. Pass it into your view model's constructor, create players, recorders, capture sources, and PCM voices from it there, and release them in `onCleared()`.
+`LightAudio` is constructed from the `SealedLightActivity` the screen already receives.
+Pass it into your view model, create players, recorders, capture sources, and PCM voices there, and release their handles in `onCleared()`.
+
+`newPlayer()` creates an attached player by default.
+Its playback belongs to the tool screen and `release()` stops it.
+A detached player moves playback ownership to an SDK service, so `release()` disconnects the tool handle but does not stop playback.
+Call `stop()` before `release()` when the tool intends to end detached playback.
 
 ```kotlin
 class PlayerViewModel(audio: LightAudio) : LightViewModel<Unit>() {
@@ -105,7 +112,8 @@ class PlayerScreen(private val sealedActivity: SealedLightActivity) : LightScree
 
 #### Player
 
-`LightAudioPlayer` plays files, bundled assets, and local or remote URLs. A player owns one queue and exposes position, duration, playback state, and queue index through `StateFlow` objects.
+`LightAudioPlayer` plays files, bundled assets, and local or remote URLs. A player owns one queue and exposes its state through `StateFlow` objects: `positionMs`, `durationMs`, `isPlaying`, `currentMediaItemIndex`, `queue`, `error`, and `availability`.
+`currentMediaItemIndex` is `NO_MEDIA_ITEM` while the queue is empty.
 
 ```kotlin
 player.setMediaQueue(
@@ -119,11 +127,127 @@ player.setMediaQueue(
 player.play()
 ```
 
-- Use `pause`, `stop`, `seekTo`, or the skip methods for transport controls.
+- Use `pause` and `stop` for transport; `seekTo` jumps within an item, `seekToDefaultPosition(index)` selects a queue item, and `skipToPrevious()` or `skipToNext()` selects an adjacent item.
+- Edit the queue in place with `addMediaItem`, `removeMediaItem`, `moveMediaItem`, and `replaceMediaItem`. `queue.value` exposes item IDs and metadata; `queue.value.size` reports its length.
+- Set `speed` to change playback rate; values at or below zero clamp to the minimum supported rate.
+- Use `setSource(File)` as a convenience for a one-item local-file queue.
 - Playback requests audio focus automatically.
 - If focus is unavailable, `play()` does nothing.
 - Observe `isPlaying` for the actual state.
 - Transient focus loss pauses and later resumes playback, while duckable loss lowers the volume.
+
+##### Editing the queue
+
+A negative index is a mistake and throws. An index past the end is not: a queue can change underneath a tool, so `addMediaItem` appends, `moveMediaItem` clamps its destination to the end, and everything else does nothing.
+
+`replaceMediaItem` replaces an item's source, which is how to hand the player a re-resolved URL. Replacing the current item can restart it from the beginning; save its position and seek afterward if you need to resume there. Give both items the same `LightAudioItem.id` so they name the same audio:
+
+```kotlin
+val track = LightAudioItem(
+    id = "track-1",
+    source = LightAudioSource.UrlSource(freshUrl),
+    metadata = LightMediaMetadata(title = "Example"),
+)
+player.replaceMediaItem(index, track)
+```
+
+An item without an `id` is identified and cached by its location. Rotating signed URLs need a stable explicit ID to reuse cached bytes. IDs must be globally unique for distinct audio, including across playlists.
+
+##### Caching what you stream
+
+A player can read through a cache the tool describes. The SDK opens the store under your tool's private cache storage, shares one per directory across your process, and keeps it when the player is released:
+
+```kotlin
+val player = audio.newPlayer(LightPlayerSpec(
+    cache = LightMediaCache("stream", sizeBytes = 256L * 1024 * 1024),
+))
+```
+
+The cache is consulted before the network, and newly streamed bytes are written to it. When it is full, the bytes read longest ago are discarded.
+
+Cached bytes are filed under `LightAudioItem.id`, so an item whose URL is re-resolved still finds what it already cached. Files and bundled assets bypass caching, since they are already on the device. DASH segments are filed under their own URLs, so re-resolved DASH URLs do not reuse what the old ones cached.
+
+A detached session's cache is fixed when its player is built. Reconnecting with a different cache throws `LightAudioPlayerException`, the same way a conflicting `LightAudioUsage` does.
+Reusing a cache name with a different `sizeBytes` in the same process throws
+`IllegalArgumentException` when creating a player, regardless of playback mode.
+
+##### Streaming DASH
+
+media3 plays DASH only when a source for it is on the classpath, which the SDK does not ship to every tool. Ask for it in `lighttool.toml`:
+
+```toml
+[tool]
+capabilities = ["audio-dash"]
+```
+
+Nothing else changes: pass the manifest URL as a `LightAudioSource.UrlSource` and the player selects the DASH source itself.
+
+##### Playback failures
+
+Player creation failures and playback failures use different mechanisms.
+
+`LightAudioPlayerException` is **thrown** when you create a player, for things the tool got wrong: a missing capability, a second detached handle, or a usage that conflicts with a live detached session.
+Correct the cause, then create the player again.
+
+`LightAudioError` is **observed** while playing, for things the content or the device got wrong. Playback stopped, but the player still works; select another item to continue.
+
+```kotlin
+player.error.collect { error ->
+    when (error?.kind) {
+        LightAudioErrorKind.Source -> // network or file I/O; worth retrying
+        LightAudioErrorKind.Unsupported -> // bad container or codec; skip it
+        LightAudioErrorKind.Output -> // the audio device could not be opened
+        LightAudioErrorKind.Unknown -> // unclassified
+        null -> // no current failure
+    }
+}
+```
+
+`error.diagnostic` carries the underlying platform error name for logs, and `error.itemIndex` is the queue position that failed, or `-1` when unavailable.
+
+When an item fails, playback stops rather than skipping to the next item.
+The SDK does not advance automatically, because unplayable content would advance in a loop.
+Setting a queue again or replacing a failed item and calling `play()` clears `error` through re-preparation. Queue edits alone do not start playback.
+
+##### Detached playback and reconnecting
+
+Create a detached player when playback must continue after its tool screen is released.
+Enable detached audio in `lighttool.toml`:
+
+```toml
+[tool]
+capabilities = ["detached-audio"]
+```
+
+Wait for its controller before deciding whether the session is fresh:
+
+```kotlin
+val player = audio.newPlayer(LightPlayerSpec(playback = LightAudioPlayback.Detached))
+if (player.awaitReady() && player.currentMediaItemIndex.value == NO_MEDIA_ITEM) {
+    player.setMediaQueue(items)
+}
+```
+
+The player `availability` field exposes the connection lifecycle:
+
+- `Initializing` — the detached controller is connecting.
+- `Ready` — commands can be handled. Attached players start here.
+- `Refused` — the detached controller connection was rejected or failed.
+- `Released` — the handle is closed and cannot accept commands.
+
+`awaitReady()` suspends through initialization and returns `true` only when the player reaches `Ready`. It returns `false` if the connection is refused or the player is released first.
+
+A non-empty queue belongs to the surviving service. Reuse it instead of setting the queue again, which would replace live playback. Position, duration, playing state, queue, queue index, and playback error are populated when the controller connects.
+Once the service stops, the next player is fresh and restoring its queue and position is the tool's responsibility.
+
+`release()` disconnects a detached handle but does not stop its playback.
+To end detached playback, call `stop()` before `release()`. Calling `release()`
+alone only disconnects the handle; playback may continue.
+Only one detached handle may exist per tool process.
+
+A live session must be reopened with the same `LightAudioUsage`; requesting a different usage throws `LightAudioPlayerException`.
+
+For more details on the detached playback design, refer to [Design Decisions - Detached audio](../../docs/design_decisions/detached_audio.md).
 
 #### PCM voice
 
@@ -185,6 +309,226 @@ capture.asFlow().collect { pcm ->
 - Use one active collector per capture instance.
 - A capture startup failure throws `LightAudioCaptureException` from collection.
 - Set `CaptureConfig.source` to `Unprocessed` to request raw input when supported; `Mic` uses the standard processed microphone path.
+
+### Vibration
+
+Use `sealedActivity.vibrator` for touch feedback or vibration waveforms. It holds only the application context, so it can outlive the screen.
+
+```kotlin
+import kotlin.time.Duration.Companion.milliseconds
+
+val vibrator: LightVibrator = sealedActivity.vibrator
+
+vibrator.click() // short touch feedback
+vibrator.vibrate(100.milliseconds) // default intensity
+vibrator.vibrate(100.milliseconds, VibrationAmplitude(128)) // custom intensity
+
+vibrator.vibrate(
+    LightVibrationWaveform(
+        durations = listOf(100.milliseconds, 400.milliseconds, 500.milliseconds),
+        amplitudes = vibrationAmplitudesOf(255, 120, 40),
+    ),
+    usage = LightVibrationUsage.Alarm,
+)
+```
+
+- Segment `i` lasts `durations[i]` at `amplitudes[i]`, where `0` is off and `255` is the motor's maximum.
+- Without motor amplitude control, each segment becomes an on/off pulse whose on-time is proportional to its amplitude.
+- `LightVibrationUsage.Touch` is for direct touch feedback. `LightVibrationUsage.Alarm` is for alarms and timers the user set, and vibrates while the screen is off.
+- `cancel()` stops the current vibration. Devices without a vibrator ignore all calls.
+- The `android.permission.VIBRATE` permission is merged from the SDK; listing it in `lighttool.toml` documents the tool's intent.
+
+### NFC
+
+`LightNfc` reads NFC tags — and other phones presenting a tag — while your tool is in the foreground.
+Declare the permission in `lighttool.toml`; the plugin emits the matching `<uses-feature android:name="android.hardware.nfc" android:required="false" />` for you, so phones without NFC are never filtered out of the store listing.
+
+```toml
+permissions = ["android.permission.NFC"]
+```
+
+#### Availability
+
+`LightNfc` is a factory constructed from the `SealedLightActivity` your screen already receives. `availability` is read again on every access, because NFC can be switched on or off in Settings while your tool is backgrounded.
+
+```kotlin
+val nfc: LightNfc = DefaultLightNfc(sealedActivity)
+
+val prompt = when (nfc.availability) {
+    LightNfcAvailability.Ready -> "Hold your phone near the other device."
+    LightNfcAvailability.Disabled -> "Turn on NFC in Settings, then try again."
+    LightNfcAvailability.PermissionMissing -> "This tool doesn't have access to NFC."
+    LightNfcAvailability.Unsupported -> "This phone can't use NFC."
+}
+```
+
+- `availability.isReady` is the short form. Gate any tap affordance on it, so a phone without NFC never shows the button.
+- `Unsupported` means no NFC hardware; `Disabled` means the user turned NFC off; `PermissionMissing` means the tool omitted `android.permission.NFC` from `lighttool.toml`, and is logged with that detail.
+- Screens can refresh it from `willShow()`, which runs every time the screen comes back to the front.
+
+#### Reading taps
+
+`LightNfcReader` provides taps as a `Flow<LightNfcTap>`, holding reader mode for as long as it is collected.
+
+```kotlin
+nfc.newReader().asFlow().collect { tap ->
+    val address = tap.uri ?: tap.text
+}
+```
+
+For a one-shot read, `awaitTap()` takes the first tap and stops:
+
+```kotlin
+val tap = nfc.newReader().awaitTap()
+```
+
+- Collection owns reader mode: starting collection arms the reader, or the next time the tool resumes if it is backgrounded; backgrounding disarms it; cancelling releases it.
+- Collection is the boundary, not the screen. A reader collected from a scope that outlives the screen stays armed after the user navigates away, so collect from something that ends with the screen, as `LightNfcTapReader` does.
+- Concurrent collectors share the one reader mode Android grants the Activity: the newest receives taps, earlier ones resume as later ones stop, and the last to stop releases the radio.
+- Release matters: while reader mode is on, no other app sees taps.
+- Every tap carries `serialNumber`, the tag's UID as uppercase hex.
+- `records` holds the decoded NDEF message as `LightNfcRecord.Uri`, `LightNfcRecord.Text`, or `LightNfcRecord.Binary`. `tap.uri` and `tap.text` are shortcuts for the first record of each kind.
+- A tag with no NDEF message — a bare UID badge — reads successfully with an empty `records` list.
+- Failures arrive from collection as a `LightNfcException`: `LightNfcUnavailableException` when NFC is off, absent, not granted to the tool, or couldn't start; `LightNfcReadException` when the tag left the field or its contents couldn't be decoded. The exception message is product copy naming the actual cause.
+- `LightNfcReaderConfig` narrows the technologies polled, skips the platform's NDEF check, silences the platform tap sound, and sets the presence-check delay.
+
+#### Talking to smart cards (ISO-DEP)
+
+`withIsoDep` waits for a tap from an ISO-DEP card — a payment card, passport, or hardware security key — and hands your block a connected `LightIsoDep` for exchanging raw ISO 7816-4 APDUs. Reader mode stays held until the block returns, then the card is released.
+
+```kotlin
+val reader = nfc.newReader(
+    LightNfcReaderConfig(
+        technologies = setOf(LightNfcTechnology.NfcA, LightNfcTechnology.NfcB),
+        skipNdefCheck = true,
+    ),
+)
+
+val selectAid = byteArrayOf(0x00, 0xA4.toByte(), 0x04, 0x00, aid.size.toByte()) + aid
+
+val selected = reader.withIsoDep { card ->
+    val response = card.transceive(selectAid)
+    response.size >= 2 &&
+        response[response.size - 2] == 0x90.toByte() &&
+        response[response.size - 1] == 0x00.toByte()
+}
+```
+
+- Cards answer over NFC-A or NFC-B; skipping the NDEF check keeps the platform from probing the card before your block runs.
+- `transceive` runs off the main thread and returns the full response, status word included. Checking it is up to you.
+- A tag that isn't ISO-DEP, a card pulled away mid-exchange, or a failed exchange arrives as a `LightNfcReadException` with product copy naming the cause; `LightNfcUnavailableException` covers NFC being off or absent, as with taps.
+- `maxTransceiveLength` is the largest command the card accepts; `timeoutMs` raises the per-command timeout for slow operations such as key generation.
+- Keep the block short and avoid waiting on the user inside it: the card has to stay on the phone the whole time.
+
+#### Tap prompt
+
+`LightNfcTapReader` is the ready-made counterpart to `LightQrCodeScanner`. It runs the reader while the screen is showing and renders the prompt, so a tool that just needs an address off a tap does not handle availability itself.
+
+```kotlin
+LightNfcTapReader(
+    onTap = { tap -> tap.uri?.let(::onAddressScanned) },
+    onBack = { goBack(Unit) },
+)
+```
+
+### Connectivity
+
+`LightConnectivity` lets you query or monitor your device's network connection state. Use `currentStatus`
+for a single shot query, or `observeNetworkStatus` to get a `Flow` that will update any time the status changes.
+
+```kotlin
+lightConnectivity.observeNetworkStatus().collect {
+    // it.hasWifi
+    // it.isMetered (metered generally means a cellular network that charges for data I/O)
+    // it.isConnected
+}
+```
+
+### Location
+
+Four `LightServiceMethod`s expose the device's location. Unlike Audio and NFC there's no dedicated wrapper class yet — call them directly with `callRemoteServiceMethod` (see [Talking to LightOS](#talking-to-lightos) below).
+
+Declare a location permission in `lighttool.toml` and request it like any other runtime permission (`checkPermission` / `rememberPermissionRequestLauncher`):
+
+```toml
+permissions = ["android.permission.ACCESS_FINE_LOCATION"]
+```
+
+`android.permission.ACCESS_COARSE_LOCATION` is also allowlisted if your tool doesn't need precise coordinates.
+
+#### Reading a location
+
+- `GetDefaultLocation` returns the location the user has configured as their default on the Light dashboard.
+- `GetCurrentLocation` returns the server's best current fix, plus `accuracyMeters` and `timestampMs`.
+
+Both responses report an unknown location as all-`null` fields rather than an error:
+
+```kotlin
+val response = callRemoteServiceMethod(LightServiceMethod.GetCurrentLocation, Unit).getOrNull()
+if (response?.latitude != null && response.longitude != null) {
+    // use response.latitude, response.longitude, response.accuracyMeters, response.timestampMs
+}
+```
+
+A call fails with `LightResult.ErrorCode.NoPermission` if the location permission hasn't been granted.
+
+#### Requesting updates
+
+`RequestLocationUpdates` acquires (or renews) a 30-second(ish) lease - LightOS will start listening for location updates internally and caching the latest value.
+`ReleaseLocationUpdates` gives up the lease. As long as one tool has an active lease, LightOS will be listening for updates. 
+Renew on a timer well before the lease lapses, and always release when your tool no longer needs updates:
+
+```kotlin
+LaunchedEffect(Unit) {
+    coroutineScope {
+        val leaseJob = launch {
+            while (isActive) {
+                callRemoteServiceMethod(LightServiceMethod.RequestLocationUpdates, Unit)
+                delay(20.seconds) // renew before the 30-second lease lapses
+            }
+        }
+        try {
+            while (isActive) {
+                val location = callRemoteServiceMethod(LightServiceMethod.GetCurrentLocation, Unit).getOrNull()
+                // ...
+                delay(2.seconds) // poll however often your tool needs
+            }
+        } finally {
+            leaseJob.cancel()
+            withContext(NonCancellable) {
+                callRemoteServiceMethod(LightServiceMethod.ReleaseLocationUpdates, Unit)
+            }
+        }
+    }
+}
+```
+
+- Wrap the polling loop in `try`/`finally` (with `NonCancellable` around the release call) so navigating away, backgrounding, or any other cancellation still releases the lease instead of leaking it. (Not that big of a deal since the timeout period is short, but battery life is valuable!!)
+- `RequestLocationUpdates` and `ReleaseLocationUpdates` both respond with `Unit` on success.
+- See [`:examples:ui-demo`'s `UiDemoLocationScreen`](../../examples/ui-demo/src/main/kotlin/com/thelightphone/uidemo/UiDemoLocationScreen.kt) for a complete example, including permission handling and re-checking permission when the screen resumes.
+
+#### Setting locations in the emulator
+
+[`:sdk:emulator`](../emulator) has no real GPS to fix from, so its HTTP server ([`EmulatorHttpServer`](../emulator/src/main/kotlin/com/thelightphone/sdk/emulator/http/EmulatorHttpServer.kt)) exposes endpoints to set locations from your host machine:
+
+```bash
+# set the default location
+curl -X POST "http://localhost:8090/location/default?latitude=37.7749&longitude=-122.4194"
+
+# set the current location (accuracyMeters optional, defaults to 0.0)
+curl -X POST "http://localhost:8090/location/current?latitude=37.7749&longitude=-122.4194&accuracyMeters=5.0"
+
+# omit latitude/longitude on either endpoint to clear that location
+curl -X POST "http://localhost:8090/location/current"
+```
+
+If you're running the emulator, don't forget to forward the port first:
+
+```bash
+adb forward tcp:8090 tcp:8090
+```
+
+`/location/current` responds `409 Conflict` unless some tool currently holds an active `RequestLocationUpdates` lease — this simulates LightOS not polling GPS when nothing has asked for updates recently.
 
 ### Talking to LightOS
 

@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.ksp)
     `maven-publish`
 }
@@ -52,7 +53,13 @@ afterEvaluate {
 
 dependencies {
     api(project(":sdk:shared"))
+    api(libs.light.toolmanager.server)
+    api(libs.light.backup)
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
+    implementation(libs.androidx.work.runtime)
+    implementation(libs.ktor.client.core)
+    implementation(libs.ktor.client.okhttp)
     ksp(libs.androidx.room.compiler)
+    testImplementation(libs.kotlin.test)
 }
