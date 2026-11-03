@@ -65,8 +65,6 @@ class SettingsScreen(sealedActivity: SealedLightActivity) : SimpleLightScreen<Un
                                                     it,
                                                     initialTranslationAbbreviation =
                                                         prefs.selectedTranslation().abbreviation,
-                                                    initialFallbackAbbreviation =
-                                                        prefs.lookupTranslation().abbreviation,
                                                 )
                                             },
                                         )

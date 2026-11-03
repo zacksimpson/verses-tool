@@ -8,11 +8,14 @@ import com.thelightphone.sdk.SealedLightActivity
 import com.thelightphone.sdk.SimpleLightScreen
 import com.thelightphone.sdk.rememberKeyboardOptions
 import com.thelightphone.sdk.ui.LightTextInputEditor
-import com.thelightphone.sdk.ui.LightTextVariant
 import com.thelightphone.sdk.ui.LightTheme
 import com.thelightphone.sdk.ui.LightThemeController
 
-data class TextEditorRequest(val title: String, val initialValue: String = "")
+data class TextEditorRequest(
+    val title: String,
+    val initialValue: String = "",
+    val singleLine: Boolean = false,
+)
 
 /**
  * reusable multi-line text entry backed by the LightOS keyboard. returns the entered
@@ -38,10 +41,9 @@ class TextEditorScreen(
                     keyboardOptionsFlow = keyboardOptions,
                     onSubmit = { goBack(it.toString()) },
                     onBack = { goBack(null) },
+                    singleLine = request.singleLine,
                     // a fresh instance per push keys each editor uniquely, a fixed key would collide
                     editorKey = this@TextEditorScreen,
-                    // smaller than the sdk default so more of a long note stays visible above the keyboard
-                    inputTextVariant = LightTextVariant.Paragraph,
                     // only capitalize a fresh note, not existing text where the cursor lands mid-sentence
                     initialCaps = request.initialValue.isBlank(),
                 )

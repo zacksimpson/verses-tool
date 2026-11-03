@@ -125,7 +125,6 @@ private fun BookmarkRow(bookmark: VerseBookmark, onClick: () -> Unit) {
             variant = LightTextVariant.Copy,
             maxLines = BOOKMARK_PREVIEW_MAX_LINES,
             overflow = TextOverflow.Ellipsis,
-            lineHeightMultiplier = 0.85f,
         )
     }
 }

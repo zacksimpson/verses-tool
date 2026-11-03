@@ -60,7 +60,7 @@ internal fun resolvePassageReference(book: String, chapter: Int, anchor: Int, ta
  * fourth screen of the lookup flow, a grid of verse numbers for [book] [chapter]. the
  * grid is static (BibleBooks' baked-in verse counts) so it renders instantly with no
  * network round trip. confirming a verse or range triggers one fetchVerses call using the
- * lookup translation preference, then hands off to PassageScreen. LookupRateLimiter's
+ * selected translation, then hands off to PassageScreen. LookupRateLimiter's
  * daily backstop runs before every fetch.
  *
  * tapping a verse number anchors a range start (underlined), tapping another closes the
@@ -78,7 +78,7 @@ class VersePickerScreen(
         val themeColors by LightThemeController.colors.collectAsState()
         val scope = rememberCoroutineScope()
         // scoped to the screen, not per-tap, so picking multiple verses reuses the same http client
-        val fetcher = remember { VerseFetcher() }
+        val fetcher = remember { VerseFetcher(lightContext.dataStore) }
         DisposableEffect(Unit) {
             onDispose { fetcher.close() }
         }
@@ -94,7 +94,7 @@ class VersePickerScreen(
             resolveState = ResolveState.Resolving
             scope.launch {
                 val prefs = lightContext.dataStore.data.first()
-                val translation = prefs.lookupTranslation()
+                val translation = prefs.selectedTranslation()
                 if (!fetcher.isConfigured(translation)) {
                     resolveState = ResolveState.Error(fetcher.missingKeyMessage(translation))
                     return@launch

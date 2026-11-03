@@ -1,5 +1,9 @@
 package com.zacksimpson.verses
 
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import kotlinx.coroutines.flow.first
+
 /**
  * fetches verse text for whichever [Translation] is active, routed by its
  * [TranslationSource] rather than the translation itself, so a new youversion-backed
@@ -8,9 +12,9 @@ package com.zacksimpson.verses
  * backend clients are built lazily so a session that only uses one translation never
  * pays for the others' http clients.
  */
-internal class VerseFetcher {
-    private val esvApiLazy = lazy { EsvApi(apiKey = BuildConfig.ESV_API_KEY) }
-    private val youVersionApiLazy = lazy { YouVersionApi(appKey = BuildConfig.YOUVERSION_APP_KEY) }
+internal class VerseFetcher(private val dataStore: DataStore<Preferences>) {
+    private val esvApiLazy = lazy { EsvApi() }
+    private val youVersionApiLazy = lazy { YouVersionApi() }
     private val helloAoKjvLazy = lazy { HelloAoApi(PublicDomainProvider.KJV.translationId) }
     private val helloAoBsbLazy = lazy { HelloAoApi(PublicDomainProvider.BSB.translationId) }
     private val esvApi by esvApiLazy
@@ -23,28 +27,32 @@ internal class VerseFetcher {
         PublicDomainProvider.BSB -> helloAoBsbApi
     }
 
-    fun isConfigured(translation: Translation): Boolean = when (translation.source) {
-        is TranslationSource.Esv -> BuildConfig.ESV_API_KEY.isNotBlank()
-        is TranslationSource.YouVersion -> BuildConfig.YOUVERSION_APP_KEY.isNotBlank()
+    // read on every call so a key entered in settings applies without a restart
+    private suspend fun esvKey() = dataStore.data.first()[VersePreferences.ESV_API_KEY].orEmpty()
+    private suspend fun youVersionKey() = dataStore.data.first()[VersePreferences.YOUVERSION_APP_KEY].orEmpty()
+
+    suspend fun isConfigured(translation: Translation): Boolean = when (translation.source) {
+        is TranslationSource.Esv -> esvKey().isNotBlank()
+        is TranslationSource.YouVersion -> youVersionKey().isNotBlank()
         // both public domain providers are free and keyless, always configured
         is TranslationSource.PublicDomain -> true
     }
 
     fun missingKeyMessage(translation: Translation): String = when (translation.source) {
         is TranslationSource.Esv ->
-            "Add your ESV API key to local.properties (esvApiKey=...) to use this tool. " +
-                "Get a free key at api.esv.org."
+            "Add your ESV API key in Settings → Translations → API Keys to use this " +
+                "translation. Get a free key at api.esv.org."
         is TranslationSource.YouVersion ->
-            "Add your YouVersion Platform app key to local.properties (youVersionAppKey=...) " +
-                "to use this tool. Get a free key at platform.youversion.com."
+            "Add your YouVersion app key in Settings → Translations → API Keys to use this " +
+                "translation. Get a free key at platform.youversion.com."
         // isConfigured() is always true here, so this message never actually shows
         is TranslationSource.PublicDomain -> ""
     }
 
     suspend fun fetchVerseText(translation: Translation, reference: String): Result<String> =
         when (val source = translation.source) {
-            is TranslationSource.Esv -> esvApi.fetchVerseText(reference)
-            is TranslationSource.YouVersion -> youVersionApi.fetchVerseText(source.versionId, reference)
+            is TranslationSource.Esv -> esvApi.fetchVerseText(esvKey(), reference)
+            is TranslationSource.YouVersion -> youVersionApi.fetchVerseText(youVersionKey(), source.versionId, reference)
             is TranslationSource.PublicDomain -> helloAoApi(source.provider).fetchVerseText(reference)
         }
 
@@ -53,8 +61,8 @@ internal class VerseFetcher {
     suspend fun fetchVerses(translation: Translation, reference: String): Result<List<VerseSegment>> =
         when (val source = translation.source) {
             is TranslationSource.PublicDomain -> helloAoApi(source.provider).fetchVerses(reference)
-            is TranslationSource.Esv -> esvApi.fetchVerses(reference)
-            is TranslationSource.YouVersion -> youVersionApi.fetchVerses(source.versionId, reference)
+            is TranslationSource.Esv -> esvApi.fetchVerses(esvKey(), reference)
+            is TranslationSource.YouVersion -> youVersionApi.fetchVerses(youVersionKey(), source.versionId, reference)
         }
 
     /** only public domain text has no rate limit or storage restriction to protect, so

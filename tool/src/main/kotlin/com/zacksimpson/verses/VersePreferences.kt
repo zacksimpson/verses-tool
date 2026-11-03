@@ -1,13 +1,9 @@
 package com.zacksimpson.verses
 
 import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 
 internal object VersePreferences {
-    // gates the one-time info screen shown the first time the search icon is tapped,
-    // flipped true right before that navigation and never reset
-    val HAS_SEEN_FALLBACK_TRANSLATION_INFO = booleanPreferencesKey("has_seen_fallback_translation_info")
     val CACHED_DATE = stringPreferencesKey("cached_date")
     val CACHED_REFERENCE = stringPreferencesKey("cached_reference")
     val CACHED_TEXT = stringPreferencesKey("cached_text")
@@ -15,9 +11,6 @@ internal object VersePreferences {
     // CACHED_DATE is still today
     val CACHED_TRANSLATION = stringPreferencesKey("cached_translation")
     val SELECTED_TRANSLATION = stringPreferencesKey("selected_translation")
-    // separate from SELECTED_TRANSLATION (daily verse only), this is what the lookup
-    // feature fetches in, defaulting to KJV
-    val LOOKUP_TRANSLATION = stringPreferencesKey("lookup_translation")
 
     // one-slot cache for the last chapter fetched via the reference-tap shortcut, so
     // backing out and tapping the same reference again same day doesn't re-fetch. keyed
@@ -26,6 +19,10 @@ internal object VersePreferences {
     val CACHED_CHAPTER_DATE = stringPreferencesKey("cached_chapter_date")
     val CACHED_CHAPTER_KEY = stringPreferencesKey("cached_chapter_key")
     val CACHED_CHAPTER_VERSES = stringPreferencesKey("cached_chapter_verses")
+
+    // user-entered api keys, stored in the tool's private datastore and never shown back
+    val ESV_API_KEY = stringPreferencesKey("esv_api_key")
+    val YOUVERSION_APP_KEY = stringPreferencesKey("youversion_app_key")
 }
 
 internal fun Preferences.selectedTranslation(): Translation =
@@ -46,8 +43,3 @@ internal fun Preferences.cachedVerseCount(translation: Translation): Int {
         range.endVerse - range.startVerse + 1
     }.getOrDefault(0)
 }
-
-internal fun Preferences.lookupTranslation(): Translation =
-    this[VersePreferences.LOOKUP_TRANSLATION]
-        ?.let { stored -> Translation.entries.firstOrNull { it.name == stored } }
-        ?: Translation.KJV

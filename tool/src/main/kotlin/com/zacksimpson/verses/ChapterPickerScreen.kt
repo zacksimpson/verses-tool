@@ -90,7 +90,7 @@ class ChapterPickerScreen(
                                                             if (!isJumpingToChapter) {
                                                                 isJumpingToChapter = true
                                                                 scope.launch {
-                                                                    val translation = lightContext.dataStore.data.first().lookupTranslation()
+                                                                    val translation = lightContext.dataStore.data.first().selectedTranslation()
                                                                     navigateTo(
                                                                         screenFactory = {
                                                                             PassageScreen(it, "$book $chapter", null, translation)

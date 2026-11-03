@@ -30,7 +30,7 @@ sealed class VerseUiState {
 class VersesViewModel(
     private val dataStore: DataStore<Preferences>,
 ) : LightViewModel<Unit>() {
-    private val fetcher = VerseFetcher()
+    private val fetcher = VerseFetcher(dataStore)
 
     private val _uiState = MutableStateFlow<VerseUiState>(VerseUiState.Loading)
     val uiState: StateFlow<VerseUiState> = _uiState.asStateFlow()

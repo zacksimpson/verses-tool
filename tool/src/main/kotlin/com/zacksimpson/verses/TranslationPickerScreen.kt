@@ -14,7 +14,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -35,11 +34,16 @@ import com.thelightphone.sdk.ui.LightTopBar
 import com.thelightphone.sdk.ui.LightTopBarCenter
 import com.thelightphone.sdk.ui.gridUnitsAsDp
 import com.thelightphone.sdk.ui.lightClickable
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
-/** shared by Settings' "Translation" and "Fallback Translation" rows, same selection UI,
- *  differing only in which preference they read/write and the top bar title. both offer
- *  every translation by default, but a caller can pass a narrower list. */
+/** the translation selection UI, parameterized on which preference it reads/writes and
+ *  the top bar title. offers every translation by default, but a caller can pass a
+ *  narrower list. */
 class TranslationPickerScreen(
     sealedActivity: SealedLightActivity,
     private val title: String,
@@ -48,13 +52,26 @@ class TranslationPickerScreen(
     private val options: List<Translation> = Translation.entries,
 ) : SimpleLightScreen<Unit>(sealedActivity) {
 
+    // not rememberCoroutineScope, that one is cancelled while the key screens cover this one
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+
+    override fun onScreenDestroy() {
+        scope.cancel()
+    }
+
+    private fun select(translation: Translation) {
+        scope.launch {
+            lightContext.dataStore.edit { p -> p[preferenceKey] = translation.name }
+            goBack(Unit)
+        }
+    }
+
     @Composable
     override fun Content() {
         val themeColors by LightThemeController.colors.collectAsState()
-        val scope = rememberCoroutineScope()
         val prefs by lightContext.dataStore.data.collectAsState(initial = null)
         // null (nothing highlighted) instead of guessing a default while prefs is still
-        // loading, the right fallback differs per caller and isn't knowable generically here
+        // loading, the right default differs per caller and isn't knowable generically here
         val selected = prefs?.let(currentSelection)
         // guards against a fast double-tap firing two goBack() calls, the second would
         // pop whatever screen is now on top
@@ -86,12 +103,23 @@ class TranslationPickerScreen(
                                         isSelected = translation == selected,
                                         onClick = {
                                             if (!isSelecting) {
-                                                isSelecting = true
-                                                scope.launch {
-                                                    lightContext.dataStore.edit { p ->
-                                                        p[preferenceKey] = translation.name
-                                                    }
-                                                    goBack(Unit)
+                                                val service = translation.apiKeyService()
+                                                if (service != null && prefs?.let(service::isSetIn) != true) {
+                                                    // explain the key first, and finish the pick
+                                                    // here if one got saved
+                                                    navigateTo(
+                                                        screenFactory = { ApiKeyRequiredScreen(it, translation) },
+                                                        resultCallback = {
+                                                            scope.launch {
+                                                                if (service.isSetIn(lightContext.dataStore.data.first())) {
+                                                                    select(translation)
+                                                                }
+                                                            }
+                                                        },
+                                                    )
+                                                } else {
+                                                    isSelecting = true
+                                                    select(translation)
                                                 }
                                             }
                                         },

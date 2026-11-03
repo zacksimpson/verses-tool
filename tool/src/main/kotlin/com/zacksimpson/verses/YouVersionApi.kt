@@ -81,15 +81,15 @@ internal object YouVersionHtmlParsing {
  * client for the YouVersion Platform REST API (NIV/NASB), hit directly with ktor instead
  * of their kotlin SDK, which isn't on the plugin's dependency allowlist.
  */
-internal class YouVersionApi(private val appKey: String) {
+internal class YouVersionApi {
     private val client = createBibleApiHttpClient()
 
-    suspend fun fetchVerseText(versionId: Int, reference: String): Result<String> =
-        fetchVerses(versionId, reference).mapCatching { verses -> joinVerseTexts(verses.map { it.text }) }
+    suspend fun fetchVerseText(appKey: String, versionId: Int, reference: String): Result<String> =
+        fetchVerses(appKey, versionId, reference).mapCatching { verses -> joinVerseTexts(verses.map { it.text }) }
 
     /** same passage as [fetchVerseText] but keeps verse numbers and paragraph structure
      *  instead of flattening to one string. */
-    suspend fun fetchVerses(versionId: Int, reference: String): Result<List<VerseSegment>> = runCatching {
+    suspend fun fetchVerses(appKey: String, versionId: Int, reference: String): Result<List<VerseSegment>> = runCatching {
         val passageId = UsfmReference.toPassageId(reference)
         val response = client.get(
             "https://api.youversion.com/v1/bibles/$versionId/passages/$passageId?format=html",

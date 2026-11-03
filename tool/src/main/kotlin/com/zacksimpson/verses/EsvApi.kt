@@ -59,15 +59,15 @@ internal object EsvTextParsing {
  * passage's paragraph and poetry structure survives instead of coming back as one flat
  * block of text.
  */
-internal class EsvApi(private val apiKey: String) {
+internal class EsvApi {
     private val client = createBibleApiHttpClient()
 
-    suspend fun fetchVerseText(reference: String): Result<String> =
-        fetchVerses(reference).mapCatching { verses -> joinVerseTexts(verses.map { it.text }) }
+    suspend fun fetchVerseText(apiKey: String, reference: String): Result<String> =
+        fetchVerses(apiKey, reference).mapCatching { verses -> joinVerseTexts(verses.map { it.text }) }
 
     /** same passage as [fetchVerseText] but keeps verse numbers and paragraph structure
      *  instead of flattening to one string. */
-    suspend fun fetchVerses(reference: String): Result<List<VerseSegment>> = runCatching {
+    suspend fun fetchVerses(apiKey: String, reference: String): Result<List<VerseSegment>> = runCatching {
         val encoded = URLEncoder.encode(reference, UTF_8.name())
         val response = client.get(
             "https://api.esv.org/v3/passage/text/" +

@@ -148,7 +148,6 @@ private fun NoteRow(note: VerseNote, onClick: () -> Unit) {
             variant = LightTextVariant.Copy,
             maxLines = NOTE_PREVIEW_MAX_LINES,
             overflow = TextOverflow.Ellipsis,
-            lineHeightMultiplier = 0.85f,
         )
     }
 }

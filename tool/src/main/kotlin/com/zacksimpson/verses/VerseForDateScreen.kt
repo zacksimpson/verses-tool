@@ -55,7 +55,7 @@ class VerseForDateScreen(
         LaunchedEffect(dateStr) {
             val prefs = lightContext.dataStore.data.first()
             val translation = prefs.selectedTranslation()
-            val fetcher = VerseFetcher()
+            val fetcher = VerseFetcher(lightContext.dataStore)
 
             try {
                 if (!fetcher.isConfigured(translation)) {

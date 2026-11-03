@@ -66,7 +66,7 @@ class PassageScreen(
 
         if (initialVerses == null) {
             LaunchedEffect(reference) {
-                val fetcher = VerseFetcher()
+                val fetcher = VerseFetcher(lightContext.dataStore)
                 try {
                     when (val result = resolveChapterForReference(lightContext.dataStore, fetcher, translation, reference)) {
                         is ChapterJumpResult.Success -> verses = result.verses

@@ -19,18 +19,15 @@ import com.thelightphone.sdk.ui.LightTopBar
 import com.thelightphone.sdk.ui.LightTopBarCenter
 import com.thelightphone.sdk.ui.gridUnitsAsDp
 
-/** one level under settings, the daily-verse translation and the lookup fallback
- *  translation, each showing its current selection under the label, plus the explainer
- *  for why lookups default to a public domain translation.
+/** one level under settings, the translation row showing its current selection, plus
+ *  the api keys entry.
  *
- *  [initialTranslationAbbreviation]/[initialFallbackAbbreviation] come from
- *  SettingsScreen's own already-settled read of the same preferences, shown until this
- *  screen's own collectAsState catches up so there's no flash to a guessed default on
- *  the first frame. */
+ *  [initialTranslationAbbreviation] comes from SettingsScreen's own already-settled read
+ *  of the same preference, shown until this screen's own collectAsState catches up so
+ *  there's no flash to a guessed default on the first frame. */
 class TranslationsSettingsScreen(
     sealedActivity: SealedLightActivity,
     private val initialTranslationAbbreviation: String,
-    private val initialFallbackAbbreviation: String,
 ) : SimpleLightScreen<Unit>(sealedActivity) {
 
     @Composable
@@ -68,25 +65,9 @@ class TranslationsSettingsScreen(
                                 )
                             },
                         )
-                        SettingsValueRow(
-                            label = "Fallback Translation",
-                            value = prefs?.lookupTranslation()?.abbreviation ?: initialFallbackAbbreviation,
-                            onClick = {
-                                navigateTo(
-                                    screenFactory = {
-                                        TranslationPickerScreen(
-                                            it,
-                                            title = "Fallback Translation",
-                                            preferenceKey = VersePreferences.LOOKUP_TRANSLATION,
-                                            currentSelection = { p -> p.lookupTranslation() },
-                                        )
-                                    },
-                                )
-                            },
-                        )
                         SettingsLinkRow(
-                            label = "Fallback Translation Info",
-                            onClick = { navigateTo(screenFactory = { FallbackTranslationInfoScreen(it) }) },
+                            label = "API Keys",
+                            onClick = { navigateTo(screenFactory = { ApiKeysScreen(it) }) },
                         )
                     }
                 }

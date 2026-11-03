@@ -200,25 +200,7 @@ class VersesHomeScreen(sealedActivity: SealedLightActivity) :
                     add(
                         LightBarButton.LightIcon(
                             icon = LightIcons.SEARCH,
-                            onClick = {
-                                scope.launch {
-                                    val prefs = lightContext.dataStore.data.first()
-                                    val hasSeenInfo = prefs[VersePreferences.HAS_SEEN_FALLBACK_TRANSLATION_INFO] ?: false
-                                    if (hasSeenInfo) {
-                                        navigateTo(screenFactory = { VerseLookupScreen(it) })
-                                    } else {
-                                        lightContext.dataStore.edit { p ->
-                                            p[VersePreferences.HAS_SEEN_FALLBACK_TRANSLATION_INFO] = true
-                                        }
-                                        navigateTo(
-                                            screenFactory = { FallbackTranslationInfoScreen(it) },
-                                            resultCallback = {
-                                                navigateTo(screenFactory = { VerseLookupScreen(it) })
-                                            },
-                                        )
-                                    }
-                                }
-                            },
+                            onClick = { navigateTo(screenFactory = { VerseLookupScreen(it) }) },
                             contentDescription = "Look up a verse",
                         ),
                     )
