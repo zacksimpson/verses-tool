@@ -48,19 +48,19 @@ enum class ApiKeyService(
         title = "ESV API Key",
         preferenceKey = VersePreferences.ESV_API_KEY,
         qrCode = R.drawable.qr_esv_signup,
-        steps = "1. Scan the QR code to open api.esv.org and log in or sign up.\n\n" +
-            "2. Create an application to get a key.\n\n" +
+        steps = "1. Scan the QR code to open a step-by-step guide with pictures.\n\n" +
+            "2. Follow the guide to create an account and an application on api.esv.org.\n\n" +
             "3. Copy the key it gives you into API Keys.",
-        link = "api.esv.org",
+        link = "https://github.com/zacksimpson/verses-tool/blob/tool-library/guides/esv-guide.md",
     ),
     YouVersion(
         title = "YouVersion App Key",
         preferenceKey = VersePreferences.YOUVERSION_APP_KEY,
         qrCode = R.drawable.qr_youversion_signup,
-        steps = "1. Scan the QR code to sign up for a free account.\n\n" +
-            "2. Register an app to get an App Key.\n\n" +
+        steps = "1. Scan the QR code to open a step-by-step guide with pictures.\n\n" +
+            "2. Follow the guide to sign up, create an app, and get access to NIV and NASB.\n\n" +
             "3. Copy the key into API Keys.",
-        link = "platform.youversion.com/platform/get-started",
+        link = "https://github.com/zacksimpson/verses-tool/blob/tool-library/guides/niv-nasb-guide.md",
     ),
 }
 
