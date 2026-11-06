@@ -31,7 +31,7 @@ A focused Bible reading tool for the Light Phone III, built with the official [L
 ### API Keys
 KJV and BSB are public domain and work out of the box. ESV, NIV and NASB need a free key of your own, entered in **Settings → Translations → API Keys**:
 * ESV: get a key at https://api.esv.org ([step-by-step guide with pictures](guides/esv-guide.md))
-* NIV and NASB: get an app key at https://platform.youversion.com/platform/get-started ([step-by-step guide with pictures](guides/youversion-guide.md))
+* NIV and NASB: get an app key at https://platform.youversion.com/platform/get-started ([step-by-step guide with pictures](guides/niv-nasb-guide.md))
 
 Keys are stored only on your device and are only sent to the service they belong to.
 
