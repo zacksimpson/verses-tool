@@ -27,35 +27,22 @@ import com.thelightphone.sdk.ui.LightTopBar
 import com.thelightphone.sdk.ui.LightTopBarCenter
 import com.thelightphone.sdk.ui.gridUnitsAsDp
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 
 /** where the user enters their own esv and youversion keys. a saved key is never shown
  *  back, only whether one is set. submitting an empty value clears it. */
 class ApiKeysScreen(sealedActivity: SealedLightActivity) : SimpleLightScreen<Unit>(sealedActivity) {
 
-    // not rememberCoroutineScope, that one is cancelled while the editor covers this screen
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
-
-    override fun onScreenDestroy() {
-        scope.cancel()
-    }
-
     @Composable
     override fun Content() {
         val themeColors by LightThemeController.colors.collectAsState()
         val prefs by lightContext.dataStore.data.collectAsState(initial = null)
 
-        // an unset key goes to the signup instructions, a saved one straight to the editor
-        // so it can be replaced or cleared
+        // always goes to the signup/help screen, which also offers replacing or removing
+        // a key that's already set, so the QR code and instructions stay reachable
         fun openKey(service: ApiKeyService) {
-            if (prefs?.get(service.preferenceKey).isNullOrBlank()) {
-                navigateTo(screenFactory = { ApiKeyHelpScreen(it, service) })
-            } else {
-                openKeyEditor(service, lightContext.dataStore, scope)
-            }
+            val initialKeySet = prefs?.let(service::isSetIn) == true
+            navigateTo(screenFactory = { ApiKeyHelpScreen(it, service, initialKeySet) })
         }
 
         fun status(key: Preferences.Key<String>) =
