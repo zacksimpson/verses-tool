@@ -1,13 +1,13 @@
-# Getting a Free YouVersion Key
+# Getting a Free YouVersion Key for NIV and NASB
+### This one-time setup takes about 8 minutes.
+NIV and NASB come from YouVersion, so they need their own free key.
+ Do these steps on a computer, then type the key into your
+Verses tool at the end.
 
-NIV and NASB come from YouVersion instead of Crossway, so they need their own free key.
-This takes about 10 minutes. Do these steps on a computer, then type the key into your
-Light Phone at the end.
-
-> **Note:** Right now, Verses only supports NIV and NASB from YouVersion. Other
+> **Note:** Right now, the Verses tool only supports NIV and NASB from YouVersion. Other
 > YouVersion translations aren't wired up yet. If there's one you'd like to see added,
 > [open an issue](https://github.com/zacksimpson/verses-tool/issues/new?labels=Translations)
-> with the request.
+> with the request!
 
 ## 1. Go to the YouVersion Platform site
 
@@ -50,20 +50,19 @@ required if you don't have one yet. Tap **Create Application** when you're done.
 
 ## 6. Get your key
 
-A box pops up with your key.
+A box pops up with your key. You'll type this key into Verses at the very end. Copy it and save it somewhere safe.
 
 ![The Application Created popup with the key](images/youversion/07-application-created.jpg)
 
-Copy it. If you ever need to find it again, go to **Apps** and tap **Details** on your
-application.
+(If you ever need to find it again, go to **Apps** and tap **Details** on your
+application.)
 
 ![The Applications page with your app listed](images/youversion/08-applications-list.jpg)
 
 ![The app details page showing the key](images/youversion/09-app-details-key.jpg)
 
 ## 7. Get access to NIV and NASB
-
-The key alone isn't enough. Each translation's publisher has to approve your app too.
+Next, we need to add NIV and NASB to your app key.
 Go to **Licensing** in the sidebar, then check the boxes for **Biblica** (this gives
 you NIV) and **Lockman** (this gives you NASB).
 
@@ -80,4 +79,4 @@ Scroll down and tap **Accept Selected**. Both should now show as Active.
 On your Light Phone, go to **Settings → Translations → API Keys → YouVersion App Key →
 Enter Key**, and type the key you copied.
 
-That's it. NIV and NASB passages will now work in Verses.
+That's it! NIV and NASB passages will now work in Verses.
