@@ -58,7 +58,7 @@ Token**. That's your key.
 
 ![The application page showing the key](images/esv/09-application-key-masked.jpg)
 
-Keep this screen pulled up.
+Keep this screen pulled up. (Always a good idea to save this key somewhere else safe too)
 
 ## 6. Add the key to Verses
 
