@@ -1,6 +1,5 @@
 package com.zacksimpson.verses
 
-import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -33,41 +32,35 @@ import com.thelightphone.sdk.ui.LightTopBarCenter
 import com.thelightphone.sdk.ui.gridUnitsAsDp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 enum class ApiKeyService(
     val title: String,
     val preferenceKey: Preferences.Key<String>,
-    @DrawableRes val qrCode: Int,
-    val steps: String,
-    val link: String,
 ) {
-    Esv(
-        title = "ESV API Key",
-        preferenceKey = VersePreferences.ESV_API_KEY,
-        qrCode = R.drawable.qr_esv_signup,
-        steps = "1. Scan the QR code to open a step-by-step guide with pictures.\n\n" +
-            "2. Follow the guide to create an account and an application on api.esv.org.\n\n" +
-            "3. Copy the key it gives you into API Keys.",
-        link = "https://github.com/zacksimpson/verses-tool/blob/tool-library/guides/esv-guide.md",
-    ),
-    YouVersion(
-        title = "YouVersion App Key",
-        preferenceKey = VersePreferences.YOUVERSION_APP_KEY,
-        qrCode = R.drawable.qr_youversion_signup,
-        steps = "1. Scan the QR code to open a step-by-step guide with pictures.\n\n" +
-            "2. Follow the guide to sign up, create an app, and get access to NIV and NASB.\n\n" +
-            "3. Copy the key into API Keys.",
-        link = "https://github.com/zacksimpson/verses-tool/blob/tool-library/guides/niv-nasb-guide.md",
-    ),
+    Esv(title = "ESV API Key", preferenceKey = VersePreferences.ESV_API_KEY),
+    YouVersion(title = "YouVersion App Key", preferenceKey = VersePreferences.YOUVERSION_APP_KEY),
 }
 
-/** how to sign up for a key, with a qr code that goes straight to the signup page. */
+// both services route to the same guide, which lets you pick your translation there,
+// so there's only one QR code/steps/link to keep in sync instead of one per service
+private const val GUIDE_STEPS = "For a 5-minute step-by-step guide to get your free key, visit:"
+private const val GUIDE_LINK = "zacksimpson.github.io/verses-tool/guides"
+
+/** how to sign up for a key, with a qr code to the full setup guide. stays reachable
+ *  even after a key is set, so it also offers replacing or removing it.
+ *
+ *  [initialKeySet] comes from the caller's own already-settled read of the same
+ *  preference, shown until this screen's own collectAsState catches up so there's no
+ *  flash to a guessed default on the first frame. */
 class ApiKeyHelpScreen(
     sealedActivity: SealedLightActivity,
     private val service: ApiKeyService,
+    private val initialKeySet: Boolean,
 ) : SimpleLightScreen<Unit>(sealedActivity) {
 
     // not rememberCoroutineScope, that one is cancelled while the editor covers this screen
@@ -80,6 +73,8 @@ class ApiKeyHelpScreen(
     @Composable
     override fun Content() {
         val themeColors by LightThemeController.colors.collectAsState()
+        val prefs by lightContext.dataStore.data.collectAsState(initial = null)
+        val keySet = prefs?.let(service::isSetIn) ?: initialKeySet
 
         LightTheme(colors = themeColors) {
             SwipeBackContainer(onSwipeBack = { goBack(Unit) }) {
@@ -90,7 +85,7 @@ class ApiKeyHelpScreen(
                 ) {
                     LightTopBar(
                         leftButton = LightBarButton.LightIcon(LightIcons.BACK, onClick = { goBack(Unit) }),
-                        center = LightTopBarCenter.Text(service.title),
+                        center = LightTopBarCenter.Text(if (keySet) service.title else "Free API Key Needed"),
                         modifier = Modifier.padding(bottom = 1f.gridUnitsAsDp()),
                     )
 
@@ -105,43 +100,61 @@ class ApiKeyHelpScreen(
                                 horizontalAlignment = Alignment.CenterHorizontally,
                             ) {
                                 Image(
-                                    painter = painterResource(service.qrCode),
+                                    painter = painterResource(R.drawable.qr_guides),
                                     contentDescription = "${service.title} sign up QR code",
                                     modifier = Modifier
-                                        .padding(top = 1f.gridUnitsAsDp())
+                                        .padding(top = 0.5f.gridUnitsAsDp())
                                         .size(12f.gridUnitsAsDp()),
                                 )
                                 LightText(
-                                    text = service.steps,
+                                    text = GUIDE_STEPS,
                                     variant = LightTextVariant.Fine,
                                     align = TextAlign.Center,
-                                    modifier = Modifier.padding(top = 2f.gridUnitsAsDp()),
+                                    modifier = Modifier.padding(top = 1.5f.gridUnitsAsDp()),
                                 )
                                 LightText(
-                                    text = service.link,
+                                    text = GUIDE_LINK,
                                     variant = LightTextVariant.Fine,
                                     underline = true,
                                     align = TextAlign.Center,
-                                    modifier = Modifier.padding(vertical = 1f.gridUnitsAsDp()),
+                                    modifier = Modifier.padding(vertical = 0.75f.gridUnitsAsDp()),
                                 )
                             }
                         }
                     }
 
+                    val editButton = LightBarButton.Text(
+                        text = if (keySet) "EDIT" else "ENTER KEY",
+                        onClick = {
+                            openKeyEditor(
+                                service,
+                                lightContext.dataStore,
+                                scope,
+                                onSaved = { goBack(Unit) },
+                            )
+                        },
+                    )
                     LightBottomBar(
-                        items = listOf(
-                            LightBarButton.Text(
-                                text = "ENTER KEY",
-                                onClick = {
-                                    openKeyEditor(
-                                        service,
-                                        lightContext.dataStore,
-                                        scope,
-                                        onSaved = { goBack(Unit) },
-                                    )
-                                },
-                            ),
-                        ),
+                        items = if (keySet) {
+                            listOf(
+                                editButton,
+                                LightBarButton.Text(
+                                    text = "REMOVE",
+                                    onClick = {
+                                        // a swipe-back right after tapping this tears down
+                                        // scope, so without NonCancellable the write could
+                                        // get cancelled mid-flight
+                                        scope.launch {
+                                            withContext(NonCancellable) {
+                                                saveApiKey(lightContext.dataStore, service.preferenceKey, "")
+                                            }
+                                        }
+                                    },
+                                ),
+                            )
+                        } else {
+                            listOf(editButton)
+                        },
                     )
                 }
             }

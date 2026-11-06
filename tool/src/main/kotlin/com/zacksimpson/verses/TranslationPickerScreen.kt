@@ -105,10 +105,10 @@ class TranslationPickerScreen(
                                             if (!isSelecting) {
                                                 val service = translation.apiKeyService()
                                                 if (service != null && prefs?.let(service::isSetIn) != true) {
-                                                    // explain the key first, and finish the pick
-                                                    // here if one got saved
+                                                    // straight to the signup/help screen, and
+                                                    // finish the pick here if a key got saved
                                                     navigateTo(
-                                                        screenFactory = { ApiKeyRequiredScreen(it, translation) },
+                                                        screenFactory = { ApiKeyHelpScreen(it, service, initialKeySet = false) },
                                                         resultCallback = {
                                                             scope.launch {
                                                                 if (service.isSetIn(lightContext.dataStore.data.first())) {
