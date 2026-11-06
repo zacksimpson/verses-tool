@@ -1,22 +1,7 @@
 :root {
-  color-scheme: light dark;
-  --bg: #fafaf8;
-  --fg: #1d1d1b;
-  --muted: #5b5b57;
-  --accent: #8a6d3b;
-  --card-bg: #ffffff;
-  --border: #e3e0d8;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #15151a;
-    --fg: #ececec;
-    --muted: #a9a9a3;
-    --accent: #d4af6a;
-    --card-bg: #1e1e24;
-    --border: #33333a;
-  }
+  color-scheme: dark;
+  --bg: #000;
+  --fg: #fff;
 }
 
 * { box-sizing: border-box; }
@@ -25,8 +10,14 @@ body {
   margin: 0;
   background: var(--bg);
   color: var(--fg);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-family: "Public Sans", -apple-system, system-ui, Arial, sans-serif;
+  font-weight: 400;
   line-height: 1.55;
+}
+
+::selection {
+  background: var(--fg);
+  color: var(--bg);
 }
 
 .wrap {
@@ -43,64 +34,65 @@ h1 {
 h2 {
   font-size: 1.2rem;
   margin-top: 2.25rem;
-  border-top: 1px solid var(--border);
+  border-top: 1px solid rgba(255, 255, 255, 0.25);
   padding-top: 1.5rem;
 }
 
 p.lede {
-  color: var(--muted);
+  opacity: 0.65;
   font-size: 1rem;
   margin-top: 0.25rem;
 }
 
-a { color: var(--accent); }
+a {
+  color: var(--fg);
+  text-decoration: underline;
+}
 
 img {
   width: 100%;
-  border-radius: 8px;
-  border: 1px solid var(--border);
+  border: 1px solid rgba(255, 255, 255, 0.25);
   display: block;
   margin: 1rem 0;
 }
 
 .callout {
-  border-left: 3px solid var(--accent);
-  padding: 0.9rem 1.1rem;
-  background: rgba(138,109,59,0.08);
-  border-radius: 0 8px 8px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.25);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.25);
+  padding: 1rem 0;
   margin: 1.5rem 0;
 }
 
 .callout p { margin: 0; }
 
 .card-grid {
-  display: grid;
-  gap: 1rem;
   margin-top: 2rem;
 }
 
 .card {
   display: block;
-  background: var(--card-bg);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 1.25rem;
+  padding: 1.25rem 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.25);
   text-decoration: none;
   color: inherit;
 }
 
+.card-grid .card:last-child {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.25);
+}
+
 .card h3 {
   margin: 0 0 0.35rem;
-  color: var(--accent);
+  text-decoration: underline;
 }
 
 .card p {
   margin: 0;
-  color: var(--muted);
+  opacity: 0.65;
 }
 
 footer {
   margin-top: 3rem;
-  color: var(--muted);
+  opacity: 0.65;
   font-size: 0.85rem;
 }
