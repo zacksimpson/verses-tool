@@ -1,6 +1,6 @@
 # Getting a Free YouVersion Key for NIV and NASB
 ### This one-time setup takes about 8 minutes.
-NIV and NASB come from YouVersion, so they need their own free key.
+NIV and NASB come from YouVersion, so they need their own free key. One key can cover both translations.
  Do these steps on a computer, then type the key into your
 Verses tool at the end.
 
