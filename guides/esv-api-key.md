@@ -1,7 +1,7 @@
 # Getting a Free ESV Key
-
-Verses needs a free key from Crossway (the publisher of the ESV Bible) to show ESV
-text. This takes about 5 minutes. Do these steps on a computer or another phone, then
+### This takes about 5 minutes.
+The Verses tool needs a free key from Crossway (the publisher of the ESV Bible) to show ESV
+text. Do these steps on a computer, then
 type the key into your Light Phone at the end.
 
 ## 1. Go to the ESV website
@@ -40,7 +40,7 @@ Tap **Create an API Application**.
 
 ![The Create an API Application form](images/esv/06-create-application-blank.jpg)
 
-Fill in a name (like `Verses Tool`) and a sentence about what it's for, then answer the
+Fill in a name (can be whatever you want) and a sentence about what you will use it for, then answer the
 other questions. Here's what a filled-out form looks like:
 
 ![The form filled out](images/esv/07-create-application-filled.jpg)
@@ -58,11 +58,11 @@ Token**. That's your key.
 
 ![The application page showing the key](images/esv/09-application-key-masked.jpg)
 
-Copy it.
+Keep this screen pulled up.
 
 ## 6. Add the key to Verses
 
 On your Light Phone, go to **Settings → Translations → API Keys → ESV API Key → Enter
-Key**, and type the key you copied.
+Key**, and type the key you copied. (It's case-sensitive)
 
-That's it. ESV passages will now work in Verses.
+That's it! ESV passages will now work in Verses. 
