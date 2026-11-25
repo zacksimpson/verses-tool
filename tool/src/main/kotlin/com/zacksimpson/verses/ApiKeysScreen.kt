@@ -15,6 +15,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import com.thelightphone.sdk.SealedLightActivity
 import com.thelightphone.sdk.SimpleLightScreen
+import com.thelightphone.sdk.textentry.LightTextEditResult
 import com.thelightphone.sdk.ui.LightBarButton
 import com.thelightphone.sdk.ui.LightIcons
 import com.thelightphone.sdk.ui.LightScrollView
@@ -121,20 +122,19 @@ internal fun SimpleLightScreen<*>.openKeyEditor(
     title: String = service.title,
     onSaved: () -> Unit = {},
 ) {
-    navigateTo(
-        screenFactory = { TextEditorScreen(it, TextEditorRequest(title, initial, singleLine = true)) },
-        resultCallback = { entered ->
-            scope.launch {
-                val trimmed = entered.trim()
-                if (trimmed.isNotEmpty() && apiKeyIsRejected(service, trimmed)) {
-                    openKeyEditor(service, dataStore, scope, trimmed, "Key Not Accepted", onSaved)
-                } else {
-                    saveApiKey(dataStore, service.preferenceKey, entered)
-                    onSaved()
-                }
+    // keys are case sensitive, so no auto caps, and no password mode so the key can be checked
+    editText(title = title, text = initial, singleLine = true, autoCapitalize = false) { result ->
+        if (result !is LightTextEditResult.Submitted) return@editText
+        scope.launch {
+            val trimmed = result.text.trim()
+            if (trimmed.isNotEmpty() && apiKeyIsRejected(service, trimmed)) {
+                openKeyEditor(service, dataStore, scope, trimmed, "Key Not Accepted", onSaved)
+            } else {
+                saveApiKey(dataStore, service.preferenceKey, result.text)
+                onSaved()
             }
-        },
-    )
+        }
+    }
 }
 
 /** saves [entered] under [key], an empty value clears it. */

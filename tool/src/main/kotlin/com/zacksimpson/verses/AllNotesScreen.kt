@@ -50,7 +50,7 @@ class AllNotesViewModel(
 
 /**
  * every saved note, most recent first, shown with its verse reference and date. tapping
- * opens a read-only ViewNoteScreen, its EDIT button reaches TextEditorScreen and forwards
+ * opens a read-only ViewNoteScreen, its EDIT button opens the text editor and forwards
  * the result back here, so this is still the only place that calls updateNote.
  *
  * [filterReference], when set, restricts the list to one verse, how VerseActionsScreen's

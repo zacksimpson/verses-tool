@@ -15,6 +15,7 @@ import androidx.lifecycle.viewModelScope
 import com.thelightphone.sdk.LightScreen
 import com.thelightphone.sdk.LightViewModel
 import com.thelightphone.sdk.SealedLightActivity
+import com.thelightphone.sdk.textentry.LightTextEditResult
 import com.thelightphone.sdk.ui.LightBarButton
 import com.thelightphone.sdk.ui.LightIcons
 import com.thelightphone.sdk.ui.LightText
@@ -131,13 +132,12 @@ class VerseActionsScreen(
                     ActionRow(
                         text = "Add Notes",
                         onClick = {
-                            navigateTo(
-                                screenFactory = { TextEditorScreen(it, TextEditorRequest("Add Notes")) },
-                                resultCallback = { text ->
-                                    viewModel.addNote(date, reference, text, translation)
+                            editText(title = "Add Notes", text = "") { result ->
+                                if (result is LightTextEditResult.Submitted) {
+                                    viewModel.addNote(date, reference, result.text, translation)
                                     goBack(Unit)
-                                },
-                            )
+                                }
+                            }
                         },
                     )
                     if (hasNotesForVerse) {

@@ -12,6 +12,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import com.thelightphone.sdk.SealedLightActivity
 import com.thelightphone.sdk.SimpleLightScreen
+import com.thelightphone.sdk.textentry.LightTextEditResult
 import com.thelightphone.sdk.ui.LightBarButton
 import com.thelightphone.sdk.ui.LightBottomBar
 import com.thelightphone.sdk.ui.LightIcons
@@ -27,7 +28,7 @@ import com.thelightphone.sdk.ui.gridUnitsAsDp
 
 /**
  * read-only view of one saved note, reached from all notes. the header title jumps to
- * the original verse. EDIT pushes [TextEditorScreen] and forwards whatever it returns
+ * the original verse. EDIT opens the text editor and forwards the edited text
  * back up via goBack, so all notes doesn't need to know this screen exists in between.
  * backing out without editing calls goBack(null), which the sdk treats as no result and
  * skips all notes' resultCallback entirely.
@@ -86,12 +87,9 @@ class ViewNoteScreen(
                             LightBarButton.Text(
                                 text = "EDIT",
                                 onClick = {
-                                    navigateTo(
-                                        screenFactory = {
-                                            TextEditorScreen(it, TextEditorRequest(note.reference, note.text))
-                                        },
-                                        resultCallback = { text -> goBack(text) },
-                                    )
+                                    editText(title = note.reference, text = note.text) { result ->
+                                        if (result is LightTextEditResult.Submitted) goBack(result.text)
+                                    }
                                 },
                             ),
                         ),
