@@ -16,6 +16,22 @@ class LightToolMetadataTest {
     }
 
     @Test
+    fun `reserved namespaces match the second id segment under any first segment`() {
+        listOf(
+            "com.thelightphone", "com.thelightphone.app", "com.lightphone.app",
+            "org.lightphone.app", "io.thelightphone.a.b",
+        ).forEach {
+            assertEquals(true, LightToolPolicy.isReservedToolId(it), it)
+        }
+        listOf(
+            "com.lightphonex.app", "com.thelightphone2.app", "com.example.lightphone",
+            "com.example.thelightphone.app", "lightphone.app",
+        ).forEach {
+            assertEquals(false, LightToolPolicy.isReservedToolId(it), it)
+        }
+    }
+
+    @Test
     fun `happy path parses all fields`(@TempDir dir: Path) {
         val file = writeToml(dir, """
             [tool]
@@ -42,6 +58,40 @@ class LightToolMetadataTest {
     }
 
     @Test
+    fun `alert permissions come from the alerts capability`(@TempDir dir: Path) {
+        val file = writeToml(dir, """
+            [tool]
+            id = "com.example.mytool"
+            label = "X"
+            versionCode = 1
+            versionName = "1.0.0"
+            serverPackage = "com.lightos"
+            permissions = ["android.permission.USE_EXACT_ALARM"]
+        """.trimIndent())
+
+        val ex = assertThrows<LightToolMetadataException> { LightToolMetadata.parse(file) }
+        assert(ex.message!!.contains("alerts")) { ex.message ?: "" }
+    }
+
+    @Test
+    fun `an allowlisted permission the alerts capability also generates stays declarable`(@TempDir dir: Path) {
+        val file = writeToml(dir, """
+            [tool]
+            id = "com.example.mytool"
+            label = "X"
+            versionCode = 1
+            versionName = "1.0.0"
+            serverPackage = "com.lightos"
+            permissions = ["android.permission.POST_NOTIFICATIONS"]
+            capabilities = ["alerts"]
+        """.trimIndent())
+
+        val meta = LightToolMetadata.parse(file)
+        assertEquals(listOf("android.permission.POST_NOTIFICATIONS"), meta.permissions)
+        assertEquals(listOf("alerts"), meta.capabilities)
+    }
+
+    @Test
     fun `orientation is optional`(@TempDir dir: Path) {
         val file = writeToml(dir, """
             [tool]
@@ -53,6 +103,45 @@ class LightToolMetadataTest {
         """.trimIndent())
 
         assertEquals(null, LightToolMetadata.parse(file).orientation)
+    }
+
+    @Test
+    fun `largeHeap defaults to false and parses when set`(@TempDir dir: Path) {
+        val off = writeToml(dir, """
+            [tool]
+            id = "com.example.mytool"
+            label = "My Tool"
+            versionCode = 1
+            versionName = "1.0.0"
+            serverPackage = "com.lightos"
+        """.trimIndent())
+        assertEquals(false, LightToolMetadata.parse(off).largeHeap)
+
+        val on = writeToml(dir, """
+            [tool]
+            id = "com.example.mytool"
+            label = "My Tool"
+            versionCode = 1
+            versionName = "1.0.0"
+            serverPackage = "com.lightos"
+            largeHeap = true
+        """.trimIndent())
+        assertEquals(true, LightToolMetadata.parse(on).largeHeap)
+    }
+
+    @Test
+    fun `non-boolean largeHeap fails`(@TempDir dir: Path) {
+        val file = writeToml(dir, """
+            [tool]
+            id = "com.example.mytool"
+            label = "My Tool"
+            versionCode = 1
+            versionName = "1.0.0"
+            serverPackage = "com.lightos"
+            largeHeap = "yes"
+        """.trimIndent())
+
+        assertThrows<LightToolMetadataException> { LightToolMetadata.parse(file) }
     }
 
     @Test
