@@ -43,8 +43,9 @@ class TextEditorScreen(
                     singleLine = request.singleLine,
                     // a fresh instance per push keys each editor uniquely, a fixed key would collide
                     editorKey = this@TextEditorScreen,
-                    // only capitalize a fresh note, not existing text where the cursor lands mid-sentence
-                    initialCaps = request.initialValue.isBlank(),
+                    // single line entry is for api keys, which are case sensitive, so no sentence caps.
+                    // no password mode either, the key stays visible so it can be checked as it's typed
+                    autoCapitalize = !request.singleLine,
                 )
             }
         }
